@@ -1,0 +1,163 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, Phone, MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+const ContactForm = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([formData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Wiadomość wysłana!",
+        description: "Dziękujemy za kontakt. Odpowiemy w ciągu 24 godzin.",
+      });
+
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  return (
+    <section className="py-20 bg-muted/50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl font-bold mb-6">Skontaktuj się z nami</h2>
+          <p className="text-xl text-muted-foreground">
+            Masz pytania? Chętnie na nie odpowiemy!
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Wyślij wiadomość</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Imię i nazwisko</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Adres e-mail</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="message">Wiadomość</Label>
+                  <Textarea
+                    id="message"
+                    name="message"
+                    rows={5}
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Wysyłanie..." : "Wyślij wiadomość"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <div className="space-y-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <Mail className="h-6 w-6 text-primary mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-2">E-mail</h3>
+                    <p className="text-muted-foreground">biuro@wycieczki.pl</p>
+                    <p className="text-muted-foreground">rezerwacje@wycieczki.pl</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <Phone className="h-6 w-6 text-primary mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-2">Telefon</h3>
+                    <p className="text-muted-foreground">+48 123 456 789</p>
+                    <p className="text-sm text-muted-foreground">Pn-Pt: 9:00-17:00</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <MapPin className="h-6 w-6 text-primary mt-1" />
+                  <div>
+                    <h3 className="font-semibold mb-2">Adres biura</h3>
+                    <p className="text-muted-foreground">
+                      ul. Podróżnicza 123<br />
+                      00-001 Warszawa
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default ContactForm;
