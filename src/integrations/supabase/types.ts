@@ -14,7 +14,203 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          replied_at: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          replied_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          replied_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          notes: string | null
+          number_of_people: number
+          payment_status: string | null
+          status: string | null
+          total_price: number
+          trip_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          number_of_people?: number
+          payment_status?: string | null
+          status?: string | null
+          total_price: number
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          notes?: string | null
+          number_of_people?: number
+          payment_status?: string | null
+          status?: string | null
+          total_price?: number
+          trip_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trips: {
+        Row: {
+          available_spots: number | null
+          created_at: string
+          currency: string | null
+          departure_date: string | null
+          description: string | null
+          destination: string
+          detailed_description: string | null
+          featured_image: string | null
+          gallery_images: string[] | null
+          id: string
+          is_active: boolean | null
+          itinerary: Json | null
+          location_lat: number | null
+          location_lng: number | null
+          price: number
+          return_date: string | null
+          title: string
+          total_spots: number | null
+          updated_at: string
+        }
+        Insert: {
+          available_spots?: number | null
+          created_at?: string
+          currency?: string | null
+          departure_date?: string | null
+          description?: string | null
+          destination: string
+          detailed_description?: string | null
+          featured_image?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          itinerary?: Json | null
+          location_lat?: number | null
+          location_lng?: number | null
+          price: number
+          return_date?: string | null
+          title: string
+          total_spots?: number | null
+          updated_at?: string
+        }
+        Update: {
+          available_spots?: number | null
+          created_at?: string
+          currency?: string | null
+          departure_date?: string | null
+          description?: string | null
+          destination?: string
+          detailed_description?: string | null
+          featured_image?: string | null
+          gallery_images?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          itinerary?: Json | null
+          location_lat?: number | null
+          location_lng?: number | null
+          price?: number
+          return_date?: string | null
+          title?: string
+          total_spots?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vouchers: {
+        Row: {
+          amount: number
+          code: string
+          created_at: string
+          currency: string | null
+          expires_at: string | null
+          id: string
+          message: string | null
+          recipient_email: string | null
+          recipient_name: string | null
+          sender_name: string | null
+          status: string | null
+          used_at: string | null
+        }
+        Insert: {
+          amount: number
+          code: string
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          sender_name?: string | null
+          status?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          amount?: number
+          code?: string
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string | null
+          recipient_email?: string | null
+          recipient_name?: string | null
+          sender_name?: string | null
+          status?: string | null
+          used_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
