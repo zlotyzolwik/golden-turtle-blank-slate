@@ -9,10 +9,11 @@ import TripGrid from "@/components/TripGrid";
 import Gallery from "@/components/Gallery";
 import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
+import { MapSection } from "@/components/MapSection";
 import { Trip } from "@/types/trips";
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchFilters, setSearchFilters] = useState<any>();
 
@@ -35,9 +36,16 @@ const Index = () => {
           <div className="flex items-center space-x-4">
             <Button variant="ghost" onClick={() => navigate('/')}>Strona główna</Button>
             {user ? (
-              <Button variant="outline" onClick={() => navigate('/admin')}>
-                Panel Admin
-              </Button>
+              <div className="flex items-center space-x-2">
+                {isAdmin && (
+                  <Button variant="outline" onClick={() => navigate('/admin')}>
+                    Panel Admin
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => signOut()}>
+                  Wyloguj
+                </Button>
+              </div>
             ) : (
               <Button onClick={() => navigate('/auth')}>
                 Zaloguj się
@@ -65,6 +73,7 @@ const Index = () => {
           </div>
         </section>
 
+        <MapSection />
         <Gallery />
         <FAQ />
         <ContactForm />
