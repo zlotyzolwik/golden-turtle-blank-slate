@@ -9,6 +9,9 @@ import TripDetails from "./pages/TripDetails";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminTrips from "./pages/admin/AdminTrips";
+import AdminTripNew from "./pages/admin/AdminTripNew";
+import AdminTripEdit from "./pages/admin/AdminTripEdit";
+import AdminGallery from "./pages/admin/AdminGallery";
 import AdminReservations from "./pages/admin/AdminReservations";
 import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminMessages from "./pages/admin/AdminMessages";
@@ -31,6 +34,9 @@ const App = () => (
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
           <Route path="/admin/trips" element={<AdminLayout><AdminTrips /></AdminLayout>} />
+          <Route path="/admin/trips/new" element={<AdminLayout><AdminTripNew /></AdminLayout>} />
+          <Route path="/admin/trips/edit/:id" element={<AdminLayout><AdminTripEdit /></AdminLayout>} />
+          <Route path="/admin/gallery" element={<AdminLayout><AdminGallery /></AdminLayout>} />
           <Route path="/admin/reservations" element={<AdminLayout><AdminReservations /></AdminLayout>} />
           <Route path="/admin/vouchers" element={<AdminLayout><AdminVouchers /></AdminLayout>} />
           <Route path="/admin/messages" element={<AdminLayout><AdminMessages /></AdminLayout>} />

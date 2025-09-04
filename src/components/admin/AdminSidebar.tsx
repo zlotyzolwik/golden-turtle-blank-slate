@@ -6,6 +6,7 @@ import {
   Gift, 
   MessageSquare, 
   BarChart3,
+  Images,
   LogOut 
 } from "lucide-react";
 import {
@@ -30,6 +31,11 @@ const adminMenuItems = [
     title: "Wycieczki",
     url: "/admin/trips",
     icon: MapPin,
+  },
+  {
+    title: "Galeria wspomnień",
+    url: "/admin/gallery",
+    icon: Images,
   },
   {
     title: "Rezerwacje",
