@@ -101,7 +101,19 @@ const Auth = () => {
           title: "Pomyślnie zalogowano",
           description: "Witamy z powrotem!",
         });
-        navigate("/");
+        
+        // Check if user is admin and redirect accordingly
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', (await supabase.auth.getSession()).data.session?.user.id)
+          .single();
+          
+        if (profile?.role === 'admin') {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }
     } catch (error) {
       toast({

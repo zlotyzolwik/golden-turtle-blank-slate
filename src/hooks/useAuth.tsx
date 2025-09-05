@@ -59,6 +59,26 @@ export const useAuth = () => {
       if (data) {
         setProfile(data);
         setIsAdmin(data.role === 'admin');
+      } else {
+        // Profile doesn't exist, create it with safe upsert
+        try {
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .upsert({
+              id: userId,
+              email: session?.user?.email || '',
+              role: 'user'
+            })
+            .select()
+            .single();
+          
+          if (newProfile) {
+            setProfile(newProfile);
+            setIsAdmin(newProfile.role === 'admin');
+          }
+        } catch (upsertError) {
+          console.error('Error creating profile:', upsertError);
+        }
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
