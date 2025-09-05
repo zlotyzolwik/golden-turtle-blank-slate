@@ -1,6 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,6 +11,18 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
   const { user, isAdmin, loading } = useAuth();
   const { toast } = useToast();
+  const notifiedRef = useRef(false);
+
+  useEffect(() => {
+    if (!loading && requireAdmin && user && !isAdmin && !notifiedRef.current) {
+      toast({
+        title: "Brak uprawnień",
+        description: "Nie masz uprawnień administratora.",
+        variant: "destructive",
+      });
+      notifiedRef.current = true;
+    }
+  }, [loading, requireAdmin, user, isAdmin, toast]);
 
   if (loading) {
     return (
@@ -23,12 +36,7 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/auth" replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
-    toast({
-      title: "Brak uprawnień",
-      description: "Nie masz uprawnień administratora.",
-      variant: "destructive",
-    });
+if (requireAdmin && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 
