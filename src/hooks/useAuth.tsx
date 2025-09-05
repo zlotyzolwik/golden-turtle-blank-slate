@@ -20,7 +20,7 @@ export const useAuth = () => {
         // Fetch profile data when user logs in
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(session.user.id, session.user.email || '');
           }, 0);
         } else {
           setProfile(null);
@@ -36,14 +36,14 @@ export const useAuth = () => {
       setLoading(false);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, session.user.email || '');
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, email: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -66,7 +66,7 @@ export const useAuth = () => {
             .from('profiles')
             .upsert({
               id: userId,
-              email: session?.user?.email || '',
+              email: email,
               role: 'user'
             })
             .select()
