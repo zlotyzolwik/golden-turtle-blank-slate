@@ -5,54 +5,26 @@ import TripCard from "./TripCard";
 import { useToast } from "@/hooks/use-toast";
 
 interface TripGridProps {
-  searchFilters?: {
-    destination: string;
-    priceRange: string;
-    departureDate: Date | undefined;
-  };
   onTripSelect: (trip: Trip) => void;
 }
 
-const TripGrid = ({ searchFilters, onTripSelect }: TripGridProps) => {
+const TripGrid = ({ onTripSelect }: TripGridProps) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     fetchTrips();
-  }, [searchFilters]);
+  }, []);
 
   const fetchTrips = async () => {
     setLoading(true);
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('trips')
         .select('*')
         .eq('is_active', true)
         .order('departure_date', { ascending: true });
-
-      // Apply filters
-      if (searchFilters?.destination) {
-        query = query.ilike('destination', `%${searchFilters.destination}%`);
-      }
-
-      if (searchFilters?.priceRange) {
-        const [min, max] = searchFilters.priceRange.includes('+') 
-          ? [3000, Infinity]
-          : searchFilters.priceRange.split('-').map(Number);
-        
-        query = query.gte('price', min);
-        if (max !== Infinity) {
-          query = query.lte('price', max);
-        }
-      }
-
-      if (searchFilters?.departureDate) {
-        const dateStr = searchFilters.departureDate.toISOString().split('T')[0];
-        query = query.gte('departure_date', dateStr);
-      }
-
-      const { data, error } = await query;
 
       if (error) throw error;
       setTrips(data || []);
@@ -81,10 +53,9 @@ const TripGrid = ({ searchFilters, onTripSelect }: TripGridProps) => {
   if (trips.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-2xl font-semibold mb-4">Brak wyników</h3>
+        <h3 className="text-2xl font-semibold mb-4">Brak wycieczek</h3>
         <p className="text-muted-foreground">
-          Nie znaleźliśmy wycieczek spełniających Twoje kryteria. 
-          Spróbuj zmienić filtry wyszukiwania.
+          Aktualnie nie ma dostępnych wycieczek. Wróć wkrótce po nowe oferty!
         </p>
       </div>
     );

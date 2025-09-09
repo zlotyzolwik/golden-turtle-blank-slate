@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/Hero";
 import AboutSection from "@/components/AboutSection";
-import SearchSection from "@/components/SearchSection";
 import TripGrid from "@/components/TripGrid";
 import Gallery from "@/components/Gallery";
 import FAQ from "@/components/FAQ";
@@ -15,13 +13,6 @@ import { Trip } from "@/types/trips";
 const Index = () => {
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [searchFilters, setSearchFilters] = useState<any>();
-
-  const handleSearch = (filters: any) => {
-    setSearchFilters(filters);
-    const tripsSection = document.getElementById('trips-section');
-    tripsSection?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   const handleTripSelect = (trip: Trip) => {
     navigate(`/trip/${trip.id}`);
@@ -59,7 +50,6 @@ const Index = () => {
       <main>
         <Hero />
         <AboutSection />
-        <SearchSection onSearch={handleSearch} />
         
         <section id="trips-section" className="py-20 bg-background">
           <div className="container mx-auto px-4">
@@ -69,7 +59,7 @@ const Index = () => {
                 Odkryj najpiękniejsze zakątki Europy z naszymi starannie przygotowanymi wycieczkami
               </p>
             </div>
-            <TripGrid searchFilters={searchFilters} onTripSelect={handleTripSelect} />
+            <TripGrid onTripSelect={handleTripSelect} />
           </div>
         </section>
 
