@@ -15,7 +15,6 @@ export const useAuth = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
 
         // Fetch profile data when user logs in
         if (session?.user) {
@@ -25,6 +24,7 @@ export const useAuth = () => {
         } else {
           setProfile(null);
           setIsAdmin(false);
+          setLoading(false); // Only set loading false when no user
         }
       }
     );
@@ -33,10 +33,11 @@ export const useAuth = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
       
       if (session?.user) {
         fetchProfile(session.user.id, session.user.email || '');
+      } else {
+        setLoading(false); // Only set loading false when no user
       }
     });
 
@@ -53,6 +54,7 @@ export const useAuth = () => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
+        setLoading(false); // Set loading false even on error
         return;
       }
 
@@ -82,6 +84,8 @@ export const useAuth = () => {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false); // Always set loading false after profile fetch attempt
     }
   };
 

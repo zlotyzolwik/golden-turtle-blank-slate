@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, profile } = useAuth();
   const { toast } = useToast();
   const notifiedRef = useRef(false);
 
@@ -24,7 +24,8 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
     }
   }, [loading, requireAdmin, user, isAdmin, toast]);
 
-  if (loading) {
+  // Show loading spinner if still loading OR if user exists but profile not loaded yet
+  if (loading || (user && !profile)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
