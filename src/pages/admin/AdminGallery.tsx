@@ -137,11 +137,11 @@ export default function AdminGallery() {
       
       // Refresh list
       fetchImages();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
       toast({
         title: "Błąd",
-        description: "Nie udało się dodać zdjęcia do galerii.",
+        description: `Nie udało się dodać zdjęcia do galerii: ${error.message || 'Nieznany błąd'}`,
         variant: "destructive",
       });
     } finally {

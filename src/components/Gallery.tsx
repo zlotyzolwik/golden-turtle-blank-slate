@@ -1,37 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+
+interface GalleryImage {
+  id: string;
+  title: string;
+  description?: string;
+  image_url: string;
+}
 
 const Gallery = () => {
   const [currentImage, setCurrentImage] = useState(0);
-  
-  const galleryImages = [
-    {
-      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      title: "Toskania - Florencja"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1555990538-c8f1760d8dbd?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      title: "Chorwacja - Dubrownik"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1541849546-216549ae216d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      title: "Czechy - Praga"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1539650116574-75c0c6d89bf4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      title: "Grecja - Santorini"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      title: "Hiszpania - Barcelona"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-      title: "Anglia - Londyn"
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('gallery_images')
+        .select('id, title, description, image_url')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching gallery images:', error);
+        return;
+      }
+
+      setGalleryImages(data || []);
+    } catch (error) {
+      console.error('Error fetching gallery images:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const nextImage = () => {
     setCurrentImage((prev) => (prev + 1) % galleryImages.length);
@@ -40,6 +48,42 @@ const Gallery = () => {
   const prevImage = () => {
     setCurrentImage((prev) => (prev - 1 + galleryImages.length) % galleryImages.length);
   };
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-muted/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6">Galeria Wspomnień</h2>
+            <p className="text-xl text-muted-foreground">
+              Zobacz zdjęcia z naszych poprzednich wyjazdów i poczuj magię podróży
+            </p>
+          </div>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (galleryImages.length === 0) {
+    return (
+      <section className="py-20 bg-muted/50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6">Galeria Wspomnień</h2>
+            <p className="text-xl text-muted-foreground">
+              Zobacz zdjęcia z naszych poprzednich wyjazdów i poczuj magię podróży
+            </p>
+          </div>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Galeria zostanie wkrótce uzupełniona o nowe zdjęcia.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-muted/50">
@@ -60,7 +104,7 @@ const Gallery = () => {
                   onClick={() => setCurrentImage(index)}
                 >
                   <img
-                    src={image.url}
+                    src={image.image_url}
                     alt={image.title}
                     className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-110"
                   />
@@ -73,7 +117,7 @@ const Gallery = () => {
               <DialogContent className="max-w-4xl w-full p-0">
                 <div className="relative">
                   <img
-                    src={galleryImages[currentImage].url}
+                    src={galleryImages[currentImage].image_url}
                     alt={galleryImages[currentImage].title}
                     className="w-full h-auto max-h-[80vh] object-contain"
                   />
