@@ -9,6 +9,7 @@ import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
 import { MapSection } from "@/components/MapSection";
 import { Trip } from "@/types/trips";
+import Brand from "@/components/Brand";
 
 const Index = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -23,12 +24,7 @@ const Index = () => {
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-              🐢
-            </div>
-            <h1 className="text-2xl font-bold text-primary">Złoty Żółwik</h1>
-          </div>
+          <Brand />
           <div className="flex items-center space-x-4">
             <Button variant="ghost" onClick={() => navigate('/')}>Strona główna</Button>
             <Button variant="ghost" onClick={() => navigate('/vouchers')}>Vouchery</Button>
