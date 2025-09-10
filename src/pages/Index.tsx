@@ -23,9 +23,15 @@ const Index = () => {
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">WycieczkiPL</h1>
+          <div className="flex items-center space-x-3">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+              🐢
+            </div>
+            <h1 className="text-2xl font-bold text-primary">Złoty Żółwik</h1>
+          </div>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" onClick={() => navigate('/')}>Strona główna</Button>
+            <Button variant="ghost" onClick={() => navigate('/vouchers')}>Vouchery</Button>
             {user ? (
               <div className="flex items-center space-x-2">
                 {isAdmin && (
@@ -74,9 +80,9 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">WycieczkiPL</h3>
+              <h3 className="text-xl font-bold mb-4">Złoty Żółwik</h3>
               <p className="text-sm opacity-80">
-                Organizujemy niezapomniane wycieczki po Europie od 2008 roku.
+                Organizujemy niezapomniane wycieczki po najpiękniejszych zakątkach świata od 2008 roku.
               </p>
             </div>
             <div>
@@ -107,7 +113,7 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-sm opacity-80">
-            <p>&copy; 2024 WycieczkiPL. Wszystkie prawa zastrzeżone.</p>
+            <p>&copy; 2024 Złoty Żółwik. Wszystkie prawa zastrzeżone.</p>
           </div>
         </div>
       </footer>
