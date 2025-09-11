@@ -22,11 +22,31 @@ const ContactForm = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+      // Zapisanie wiadomości w bazie danych
+      const { error: dbError } = await supabase
         .from('contact_messages')
         .insert([formData]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      // Wysłanie emaila potwierdzającego
+      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: {
+          type: 'contact',
+          customerName: formData.name,
+          customerEmail: formData.email,
+          details: {
+            name: formData.name,
+            email: formData.email,
+            message: formData.message
+          }
+        }
+      });
+
+      if (emailError) {
+        console.error('Email error:', emailError);
+        // Nie przerywamy procesu jeśli email się nie wysłał
+      }
 
       toast({
         title: "Wiadomość wysłana!",

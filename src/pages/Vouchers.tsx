@@ -44,7 +44,8 @@ const Vouchers = () => {
       const expiresAt = new Date();
       expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Valid for 1 year
 
-      const { error } = await supabase
+      // Tworzenie vouchera w bazie danych
+      const { error: dbError } = await supabase
         .from('vouchers')
         .insert({
           code: voucherCode,
@@ -58,7 +59,45 @@ const Vouchers = () => {
           status: 'active'
         });
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      // Wysłanie emaila potwierdzającego do kupującego
+      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: {
+          type: 'voucher',
+          customerName: formData.senderName,
+          customerEmail: user?.email || 'guest@example.com', // Email kupującego
+          details: {
+            code: voucherCode,
+            amount: parseFloat(formData.amount),
+            currency: 'PLN',
+            recipientName: formData.recipientName,
+            recipientEmail: formData.recipientEmail,
+            senderName: formData.senderName,
+            message: formData.message,
+            expiresAt: expiresAt.toISOString()
+          }
+        }
+      });
+
+      // Wysłanie vouchera do odbiorcy
+      const { error: voucherEmailError } = await supabase.functions.invoke('send-voucher-email', {
+        body: {
+          recipientEmail: formData.recipientEmail,
+          recipientName: formData.recipientName,
+          senderName: formData.senderName,
+          voucherCode: voucherCode,
+          amount: parseFloat(formData.amount),
+          currency: 'PLN',
+          message: formData.message,
+          expiresAt: expiresAt.toISOString()
+        }
+      });
+
+      if (emailError || voucherEmailError) {
+        console.error('Email errors:', { emailError, voucherEmailError });
+        // Nie przerywamy procesu jeśli emaile się nie wysłały
+      }
 
       toast({
         title: "Voucher utworzony!",

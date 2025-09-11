@@ -79,7 +79,7 @@ const TripDetails = () => {
     try {
       const totalPrice = trip.price * reservationData.number_of_people;
       
-      const { error } = await supabase
+      const { error: dbError } = await supabase
         .from('reservations')
         .insert([{
           trip_id: trip.id,
@@ -88,7 +88,35 @@ const TripDetails = () => {
           total_price: totalPrice
         }]);
 
-      if (error) throw error;
+      if (dbError) throw dbError;
+
+      // Wysłanie emaila potwierdzającego
+      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+        body: {
+          type: 'reservation',
+          customerName: reservationData.customer_name,
+          customerEmail: reservationData.customer_email,
+          details: {
+            tripTitle: trip.title,
+            destination: trip.destination,
+            departureDate: format(new Date(trip.departure_date), "dd MMM yyyy", { locale: pl }),
+            returnDate: format(new Date(trip.return_date), "dd MMM yyyy", { locale: pl }),
+            numberOfPeople: reservationData.number_of_people,
+            totalPrice: totalPrice.toLocaleString('pl-PL'),
+            currency: trip.currency,
+            status: 'pending',
+            notes: reservationData.notes,
+            customerName: reservationData.customer_name,
+            customerEmail: reservationData.customer_email,
+            customerPhone: reservationData.customer_phone
+          }
+        }
+      });
+
+      if (emailError) {
+        console.error('Email error:', emailError);
+        // Nie przerywamy procesu jeśli email się nie wysłał
+      }
 
       toast({
         title: "Rezerwacja złożona!",
