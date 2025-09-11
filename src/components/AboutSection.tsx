@@ -1,4 +1,5 @@
-import { Award, Heart, Globe, Users } from "lucide-react";
+import { Award, Heart, Globe, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const AboutSection = () => {
   const features = [
@@ -36,19 +37,44 @@ const AboutSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Desktop: Static Grid */}
+        <div className="hidden lg:grid grid-cols-4 gap-8">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <div key={index} className="text-center group">
-                <div className="bg-primary/10 rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                  <IconComponent className="h-10 w-10 text-primary" />
+              <div key={index} className="bg-card rounded-lg shadow-lg p-8 text-center group hover:shadow-xl transition-all duration-300 h-80 flex flex-col">
+                <div className="bg-primary/10 rounded-full p-6 w-20 h-20 mx-auto mb-6 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <IconComponent className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-4 text-card-foreground">{feature.title}</h3>
+                <p className="text-muted-foreground flex-1">{feature.description}</p>
               </div>
             );
           })}
+        </div>
+
+        {/* Mobile/Tablet: Carousel */}
+        <div className="lg:hidden">
+          <Carousel className="w-full max-w-sm mx-auto md:max-w-2xl">
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {features.map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/2">
+                    <div className="bg-card rounded-lg shadow-lg p-6 md:p-8 text-center group hover:shadow-xl transition-all duration-300 h-72 md:h-80 flex flex-col">
+                      <div className="bg-primary/10 rounded-full p-4 md:p-6 w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-6 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <IconComponent className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+                      </div>
+                      <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 text-card-foreground">{feature.title}</h3>
+                      <p className="text-muted-foreground text-sm md:text-base flex-1">{feature.description}</p>
+                    </div>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+            <CarouselPrevious className="left-2" />
+            <CarouselNext className="right-2" />
+          </Carousel>
         </div>
       </div>
     </section>
