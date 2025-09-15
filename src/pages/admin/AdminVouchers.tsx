@@ -43,7 +43,14 @@ export default function AdminVouchers() {
     try {
       const { data, error } = await supabase
         .from('vouchers')
-        .select('*')
+        .select(`
+          *,
+          reservation_usage:reservations!voucher_code_used(
+            id,
+            customer_name,
+            trips(title, destination)
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -330,6 +337,20 @@ export default function AdminVouchers() {
                   <p className="text-xs text-muted-foreground">
                     Użyty: {new Date(voucher.used_at).toLocaleDateString('pl-PL')}
                   </p>
+                )}
+
+                {voucher.reservation_usage && voucher.reservation_usage.length > 0 && (
+                  <div className="mt-2 p-2 bg-green-50 rounded">
+                    <p className="text-xs font-medium text-green-700">Użyty do rezerwacji:</p>
+                    {voucher.reservation_usage.map((reservation: any) => (
+                      <div key={reservation.id} className="text-xs text-green-600">
+                        <p>{reservation.customer_name}</p>
+                        {reservation.trips && (
+                          <p className="font-medium">{reservation.trips.title} - {reservation.trips.destination}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 

@@ -33,8 +33,15 @@ export interface Reservation {
   status: string;
   payment_status: string;
   notes?: string;
+  voucher_code_used?: string;
   created_at: string;
   updated_at: string;
+  trips?: {
+    title: string;
+    destination: string;
+    departure_date: string;
+    return_date: string;
+  };
 }
 
 export interface ContactMessage {
@@ -60,4 +67,12 @@ export interface Voucher {
   used_at?: string;
   expires_at?: string;
   created_at: string;
+  reservation_usage?: Array<{
+    id: string;
+    customer_name: string;
+    trips?: {
+      title: string;
+      destination: string;
+    };
+  }>;
 }

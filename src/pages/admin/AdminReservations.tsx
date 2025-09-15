@@ -29,7 +29,7 @@ export default function AdminReservations() {
     try {
       const { data, error } = await supabase
         .from('reservations')
-        .select('*, trips(title, destination)')
+        .select('*, trips(title, destination, departure_date, return_date)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -150,6 +150,17 @@ export default function AdminReservations() {
                 <div>
                   <CardTitle className="text-lg">{reservation.customer_name}</CardTitle>
                   <p className="text-sm text-muted-foreground">{reservation.customer_email}</p>
+                  {reservation.trips && (
+                    <div className="mt-2 p-2 bg-muted rounded">
+                      <p className="text-sm font-medium text-primary">{reservation.trips.title}</p>
+                      <p className="text-xs text-muted-foreground">{reservation.trips.destination}</p>
+                      {reservation.trips.departure_date && reservation.trips.return_date && (
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(reservation.trips.departure_date).toLocaleDateString('pl-PL')} - {new Date(reservation.trips.return_date).toLocaleDateString('pl-PL')}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex space-x-2">
                   {getStatusBadge(reservation.status)}
@@ -178,6 +189,15 @@ export default function AdminReservations() {
                   <p className="text-sm text-muted-foreground">{reservation.customer_phone || 'Brak'}</p>
                 </div>
               </div>
+
+              {reservation.voucher_code_used && (
+                <div className="mb-4">
+                  <p className="text-sm font-medium mb-1">Użyty voucher</p>
+                  <p className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                    {reservation.voucher_code_used}
+                  </p>
+                </div>
+              )}
 
               {reservation.notes && (
                 <div className="mb-4">
