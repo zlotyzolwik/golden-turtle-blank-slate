@@ -93,10 +93,8 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Kontakt</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li>+48 123 456 789</li>
-                <li>biuro@wycieczki.pl</li>
-                <li>ul. Podróżnicza 123</li>
-                <li>00-001 Warszawa</li>
+                <li>514176996</li>
+                <li>kontakt@zloty-zolwik.pl</li>
               </ul>
             </div>
             <div>
