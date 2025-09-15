@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -8,6 +9,8 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -90,7 +93,58 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    if (isSigningOut) return; // Prevent multiple calls
+    
+    console.log('Starting signOut process, current session:', session?.access_token ? 'exists' : 'none');
+    setIsSigningOut(true);
+    
+    try {
+      // Clear local state immediately
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setIsAdmin(false);
+      
+      // Try to sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      // Ignore "session_not_found" errors - user is already signed out
+      if (error && !error.message?.includes('session_not_found')) {
+        console.error('SignOut error (non-critical):', error);
+      }
+      
+      // Clear localStorage as fallback
+      localStorage.removeItem('sb-xgvvcovmjqcpfmghawdy-auth-token');
+      
+      console.log('SignOut completed successfully');
+      
+      toast({
+        title: "Wylogowano pomyślnie",
+        description: "Zostałeś wylogowany z panelu administratora.",
+      });
+      
+      // Redirect to home page
+      window.location.href = '/';
+      
+    } catch (error) {
+      console.error('Unexpected signOut error:', error);
+      
+      // Even if there's an error, clear local state and redirect
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setIsAdmin(false);
+      localStorage.removeItem('sb-xgvvcovmjqcpfmghawdy-auth-token');
+      
+      toast({
+        title: "Wylogowano",
+        description: "Sesja została zakończona.",
+      });
+      
+      window.location.href = '/';
+    } finally {
+      setIsSigningOut(false);
+    }
   };
 
   return {
@@ -99,6 +153,7 @@ export const useAuth = () => {
     profile,
     isAdmin,
     loading,
+    isSigningOut,
     signOut,
   };
 };

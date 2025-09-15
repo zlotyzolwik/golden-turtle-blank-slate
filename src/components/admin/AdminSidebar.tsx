@@ -60,7 +60,7 @@ const adminMenuItems = [
 ];
 
 export function AdminSidebar() {
-  const { signOut } = useAuth();
+  const { signOut, isSigningOut } = useAuth();
 
   return (
     <Sidebar className="w-60">
@@ -88,9 +88,13 @@ export function AdminSidebar() {
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={signOut}>
+                <SidebarMenuButton 
+                  onClick={signOut}
+                  disabled={isSigningOut}
+                  className={isSigningOut ? "opacity-50 cursor-not-allowed" : ""}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Wyloguj</span>
+                  <span>{isSigningOut ? "Wylogowywanie..." : "Wyloguj"}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
