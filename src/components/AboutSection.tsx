@@ -15,7 +15,7 @@ const AboutSection = () => {
     },
     {
       icon: Globe,
-      title: "Najlepsze Destynacje",
+      title: "Lokalni przewodnicy",
       description: "Starannie wybrane miejsca, które zapadną Ci w pamięć na zawsze"
     },
     {
