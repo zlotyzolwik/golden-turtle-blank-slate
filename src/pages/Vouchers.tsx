@@ -43,14 +43,16 @@ const Vouchers = () => {
       const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-payment', {
         body: {
           type: 'voucher_purchase',
-          amount: amount,
+          amount: amount * 100, // Convert to cents
           currency: 'PLN',
-          voucherAmount: amount,
-          senderName: formData.senderName,
-          recipientName: formData.recipientName,
-          recipientEmail: formData.recipientEmail,
-          buyerEmail: formData.buyerEmail,
-          message: formData.message
+          voucherData: {
+            amount: amount * 100, // Convert to cents
+            senderName: formData.senderName,
+            recipientName: formData.recipientName,
+            recipientEmail: formData.recipientEmail,
+            buyerEmail: formData.buyerEmail,
+            message: formData.message
+          }
         }
       });
 
