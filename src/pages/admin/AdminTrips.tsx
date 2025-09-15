@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Trip } from "@/types/trips";
-import { Plus, Search, Edit2, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Eye, MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -19,6 +19,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function AdminTrips() {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -171,52 +178,68 @@ export default function AdminTrips() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate(`/trip/${trip.id}`)}
-                >
-                  <Eye className="mr-1 h-3 w-3" />
-                  Zobacz
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
                   onClick={() => navigate(`/admin/trips/edit/${trip.id}`)}
+                  size="sm"
                 >
-                  <Edit2 className="mr-1 h-3 w-3" />
+                  <Edit2 className="mr-2 h-4 w-4" />
                   Edytuj
                 </Button>
-                <Button
-                  variant={trip.is_active ? "outline" : "default"}
-                  size="sm"
-                  onClick={() => toggleTripStatus(trip)}
-                >
-                  {trip.is_active ? 'Dezaktywuj' : 'Aktywuj'}
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="h-3 w-3" />
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Usuń wycieczkę</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Czy na pewno chcesz usunąć tę wycieczkę? Ta akcja nie może być cofnięta.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => deleteTrip(trip.id)}
-                        className="bg-destructive text-destructive-foreground"
-                      >
-                        Usuń
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => navigate(`/trip/${trip.id}`)}>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Zobacz
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => toggleTripStatus(trip)}>
+                      {trip.is_active ? (
+                        <>
+                          <span className="mr-2 h-4 w-4 rounded-full bg-gray-500 inline-block" />
+                          Dezaktywuj
+                        </>
+                      ) : (
+                        <>
+                          <span className="mr-2 h-4 w-4 rounded-full bg-green-600 inline-block" />
+                          Aktywuj
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem 
+                          className="text-destructive focus:text-destructive"
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Usuń
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Usuń wycieczkę</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Czy na pewno chcesz usunąć tę wycieczkę? Ta akcja nie może być cofnięta.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteTrip(trip.id)}
+                            className="bg-destructive text-destructive-foreground"
+                          >
+                            Usuń
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardContent>
           </Card>
