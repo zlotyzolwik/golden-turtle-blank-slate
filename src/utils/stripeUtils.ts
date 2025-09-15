@@ -21,7 +21,13 @@ export interface CreatePaymentParams {
 
 export const createStripePayment = async (params: CreatePaymentParams) => {
   const { data, error } = await supabase.functions.invoke('create-payment', {
-    body: params
+    body: {
+      type: params.type,
+      amount: params.amount,
+      currency: params.currency || 'PLN',
+      reservationId: params.reservationId,
+      voucherData: params.voucherData
+    }
   });
 
   if (error) {
