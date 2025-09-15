@@ -64,7 +64,67 @@ serve(async (req) => {
       customerId = customers.data[0].id;
     }
 
-    // Create payment intent
+    // Create Checkout Session for voucher purchases
+    if (type === 'voucher_purchase') {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [{
+          price_data: {
+            currency: currency.toLowerCase(),
+            product_data: {
+              name: `Voucher Podróżniczy - ${voucherAmount} PLN`,
+              description: `Voucher od ${senderName} dla ${recipientName}`,
+            },
+            unit_amount: Math.round(amount * 100),
+          },
+          quantity: 1,
+        }],
+        mode: 'payment',
+        success_url: `${req.headers.get("origin")}/payment-success?type=voucher&amount=${amount}`,
+        cancel_url: `${req.headers.get("origin")}/payment-cancel`,
+        metadata: {
+          type,
+          user_id: user.id,
+          user_email: user.email,
+          voucher_amount: voucherAmount?.toString() || '',
+          sender_name: senderName || '',
+          recipient_name: recipientName || '',
+          recipient_email: recipientEmail || '',
+          buyer_email: buyerEmail || '',
+          message: message || ''
+        }
+      });
+
+      // Create payment record in database
+      const { error: paymentError } = await supabaseClient
+        .from('payments')
+        .insert({
+          type,
+          reservation_id: null,
+          voucher_id: null, // Will be updated after voucher creation
+          stripe_payment_intent_id: session.payment_intent as string,
+          amount,
+          currency,
+          status: 'pending'
+        });
+
+      if (paymentError) {
+        console.error('Error creating payment record:', paymentError);
+        throw new Error('Failed to create payment record');
+      }
+
+      console.log(`Checkout session created successfully: ${session.id}`);
+
+      return new Response(JSON.stringify({ 
+        url: session.url
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Create payment intent for trip reservations
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents
       currency: currency.toLowerCase(),
@@ -74,12 +134,6 @@ serve(async (req) => {
         user_id: user.id,
         user_email: user.email,
         reservation_id: reservationId || '',
-        voucher_amount: voucherAmount?.toString() || '',
-        sender_name: senderName || '',
-        recipient_name: recipientName || '',
-        recipient_email: recipientEmail || '',
-        buyer_email: buyerEmail || '',
-        message: message || ''
       }
     });
 
@@ -89,7 +143,7 @@ serve(async (req) => {
       .insert({
         type,
         reservation_id: reservationId || null,
-        voucher_id: null, // Will be updated after voucher creation
+        voucher_id: null,
         stripe_payment_intent_id: paymentIntent.id,
         amount,
         currency,

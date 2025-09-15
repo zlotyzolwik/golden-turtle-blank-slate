@@ -59,15 +59,15 @@ const Vouchers = () => {
       }
 
       // Redirect to Stripe Checkout
-      const stripeUrl = `https://checkout.stripe.com/c/pay/${paymentData.client_secret}#fidkdWxOYHwnPyd1blpxYHZxWjA0SVNxS09Cd29rTGpiYH1jYWh8ZDU2PGZJcEhqYVVkXzFKR1dSR3dqfFZrfGBoa0o8YHRuYEhCa2FKZ3JCd3ZudmlqR3Z1YGNhSjE9NTA8dWNIb14neCUl`;
-      
-      // Simple redirect approach
-      window.location.href = `${window.location.origin}/payment-success?type=voucher&amount=${amount}`;
-
-      toast({
-        title: "Przekierowanie do płatności",
-        description: "Przekierowujemy Cię do bezpiecznej płatności...",
-      });
+      if (paymentData.url) {
+        window.open(paymentData.url, '_blank');
+        toast({
+          title: "Przekierowanie do płatności",
+          description: "Otwarto bezpieczną stronę płatności Stripe...",
+        });
+      } else {
+        throw new Error('Nie otrzymano URL płatności');
+      }
 
     } catch (error) {
       console.error('Error creating voucher payment:', error);
