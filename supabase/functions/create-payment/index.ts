@@ -34,6 +34,12 @@ serve(async (req) => {
     Deno.env.get("SUPABASE_ANON_KEY") ?? ""
   );
 
+  // Create a Supabase admin client for database operations that bypass RLS
+  const supabaseAdmin = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
   try {
     // Retrieve authenticated user
     const authHeader = req.headers.get("Authorization")!;
@@ -97,8 +103,8 @@ serve(async (req) => {
         },
       });
 
-      // Insert payment record
-      const { error: paymentError } = await supabaseClient
+      // Insert payment record using admin client to bypass RLS
+      const { error: paymentError } = await supabaseAdmin
         .from('payments')
         .insert({
           type: 'voucher_purchase',
@@ -150,8 +156,8 @@ serve(async (req) => {
         },
       });
 
-      // Insert payment record
-      const { error: paymentError } = await supabaseClient
+      // Insert payment record using admin client to bypass RLS
+      const { error: paymentError } = await supabaseAdmin
         .from('payments')
         .insert({
           type: 'trip_reservation',
