@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import TripDetails from "./pages/TripDetails";
 import Vouchers from "./pages/Vouchers";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancel from "./pages/PaymentCancel";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminTrips from "./pages/admin/AdminTrips";
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/trip/:id" element={<TripDetails />} />
             <Route path="/vouchers" element={<Vouchers />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
           
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
