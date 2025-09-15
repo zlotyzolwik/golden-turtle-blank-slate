@@ -21,7 +21,7 @@ const AboutSection = () => {
     {
       icon: Users,
       title: "Koordynacja całej wycieczki",
-      description: "Doświadczeni przewodnicy i 24/7 wsparcie podczas podróży"
+      description: "Profesjonalna opieka osoby prowadzącej grupę podczas całej wycieczki"
     }
   ];
 
