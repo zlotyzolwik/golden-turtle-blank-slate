@@ -26,6 +26,11 @@ serve(async (req) => {
     console.log(`Processing webhook event: ${event.type}`);
 
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        await handleCheckoutSessionSuccess(session);
+        break;
+      }
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await handlePaymentSuccess(paymentIntent);
@@ -149,6 +154,94 @@ async function handleVoucherPurchaseSuccess(paymentIntent: Stripe.PaymentIntent,
       .from('payments')
       .update({ voucher_id: voucher.id })
       .eq('stripe_payment_intent_id', paymentIntent.id);
+  }
+
+  // Send voucher emails
+  await sendVoucherEmails(voucherData[0].voucher_code, voucherAmount, {
+    senderName,
+    recipientName,
+    recipientEmail,
+    buyerEmail,
+    message
+  });
+}
+
+async function handleCheckoutSessionSuccess(session: Stripe.Checkout.Session) {
+  const metadata = session.metadata;
+  const type = metadata?.type;
+  
+  console.log(`Checkout session completed for ${type}:`, session.id);
+
+  // Update payment status using session.payment_intent
+  const paymentIntentId = typeof session.payment_intent === 'string' 
+    ? session.payment_intent 
+    : session.payment_intent?.id;
+
+  if (paymentIntentId) {
+    const { error: paymentUpdateError } = await supabaseClient
+      .from('payments')
+      .update({ status: 'succeeded' })
+      .eq('stripe_payment_intent_id', paymentIntentId);
+
+    if (paymentUpdateError) {
+      console.error('Error updating payment status:', paymentUpdateError);
+      return;
+    }
+  }
+
+  if (type === 'voucher_purchase') {
+    await handleVoucherPurchaseFromCheckout(session, metadata);
+  }
+}
+
+async function handleVoucherPurchaseFromCheckout(session: Stripe.Checkout.Session, metadata: any) {
+  const voucherAmount = parseFloat(metadata.voucher_amount);
+  const senderName = metadata.sender_name;
+  const recipientName = metadata.recipient_name;
+  const recipientEmail = metadata.recipient_email;
+  const buyerEmail = metadata.buyer_email;
+  const message = metadata.message;
+
+  console.log('Creating voucher after successful checkout:', {
+    amount: voucherAmount,
+    buyerEmail,
+    recipientEmail
+  });
+
+  // Create voucher
+  const { data: voucherData, error: voucherError } = await supabaseClient
+    .rpc('create_voucher_public', {
+      voucher_amount: voucherAmount,
+      sender_name: senderName,
+      recipient_name: recipientName,
+      recipient_email: recipientEmail,
+      voucher_message: message,
+      buyer_email: buyerEmail
+    });
+
+  if (voucherError) {
+    console.error('Error creating voucher:', voucherError);
+    return;
+  }
+
+  // Update payment record with voucher_id
+  const { data: voucher } = await supabaseClient
+    .from('vouchers')
+    .select('id')
+    .eq('code', voucherData[0].voucher_code)
+    .single();
+
+  if (voucher) {
+    const paymentIntentId = typeof session.payment_intent === 'string' 
+      ? session.payment_intent 
+      : session.payment_intent?.id;
+      
+    if (paymentIntentId) {
+      await supabaseClient
+        .from('payments')
+        .update({ voucher_id: voucher.id })
+        .eq('stripe_payment_intent_id', paymentIntentId);
+    }
   }
 
   // Send voucher emails
