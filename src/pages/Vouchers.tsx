@@ -59,40 +59,63 @@ const Vouchers = () => {
       const voucherCode = data[0].voucher_code;
 
       // Wysłanie emaila potwierdzającego do kupującego
-      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+      const { error: confirmationEmailError } = await supabase.functions.invoke('send-smtp-email', {
         body: {
-          type: 'voucher',
-          customerName: formData.senderName,
-          customerEmail: user?.email || 'guest@example.com', // Email kupującego
-          details: {
-            code: voucherCode,
+          type: 'reservation',
+          to: user?.email || 'guest@example.com',
+          subject: 'Potwierdzenie zakupu vouchera',
+          data: {
+            customerName: formData.senderName,
+            customerEmail: user?.email || 'guest@example.com',
+            voucherCode: voucherCode,
             amount: parseFloat(formData.amount),
             currency: 'PLN',
             recipientName: formData.recipientName,
             recipientEmail: formData.recipientEmail,
-            senderName: formData.senderName,
-            message: formData.message,
-            expiresAt: expiresAt.toISOString()
+            expiryDate: expiresAt.toLocaleDateString('pl-PL')
           }
         }
       });
 
       // Wysłanie vouchera do odbiorcy
-      const { error: voucherEmailError } = await supabase.functions.invoke('send-voucher-email', {
+      const { error: voucherEmailError } = await supabase.functions.invoke('send-smtp-email', {
         body: {
-          recipientEmail: formData.recipientEmail,
-          recipientName: formData.recipientName,
-          senderName: formData.senderName,
-          voucherCode: voucherCode,
-          amount: parseFloat(formData.amount),
-          currency: 'PLN',
-          message: formData.message,
-          expiresAt: expiresAt.toISOString()
+          type: 'voucher',
+          to: formData.recipientEmail,
+          subject: 'Otrzymałeś voucher prezentowy od Złoty Żółwik!',
+          data: {
+            recipientName: formData.recipientName,
+            senderName: formData.senderName,
+            voucherCode: voucherCode,
+            amount: parseFloat(formData.amount),
+            currency: 'PLN',
+            message: formData.message,
+            expiryDate: expiresAt.toLocaleDateString('pl-PL')
+          }
         }
       });
 
-      if (emailError || voucherEmailError) {
-        console.error('Email errors:', { emailError, voucherEmailError });
+      // Wysłanie powiadomienia do administratora
+      const { error: adminEmailError } = await supabase.functions.invoke('send-smtp-email', {
+        body: {
+          type: 'admin_notification',
+          to: 'kontakt@zloty-zolwik.pl',
+          subject: 'Nowa sprzedaż vouchera',
+          data: {
+            customerName: formData.senderName,
+            customerEmail: user?.email || 'guest@example.com',
+            voucherCode: voucherCode,
+            amount: parseFloat(formData.amount),
+            currency: 'PLN',
+            recipientName: formData.recipientName,
+            recipientEmail: formData.recipientEmail,
+            message: formData.message
+          }
+        }
+      });
+
+      if (confirmationEmailError || voucherEmailError || adminEmailError) {
+        console.error('Email errors:', { confirmationEmailError, voucherEmailError, adminEmailError });
         // Nie przerywamy procesu jeśli emaile się nie wysłały
       }
 

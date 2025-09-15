@@ -29,23 +29,37 @@ const ContactForm = () => {
 
       if (dbError) throw dbError;
 
-      // Wysłanie emaila potwierdzającego
-      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+      // Wysłanie emaila potwierdzającego do klienta
+      const { error: customerEmailError } = await supabase.functions.invoke('send-smtp-email', {
         body: {
           type: 'contact',
-          customerName: formData.name,
-          customerEmail: formData.email,
-          details: {
-            name: formData.name,
-            email: formData.email,
-            message: formData.message
+          to: formData.email,
+          subject: 'Potwierdzenie otrzymania wiadomości - Złoty Żółwik',
+          data: {
+            customerName: formData.name,
+            customerEmail: formData.email,
+            contactMessage: formData.message
           }
         }
       });
 
-      if (emailError) {
-        console.error('Email error:', emailError);
-        // Nie przerywamy procesu jeśli email się nie wysłał
+      // Wysłanie powiadomienia do administratora
+      const { error: adminEmailError } = await supabase.functions.invoke('send-smtp-email', {
+        body: {
+          type: 'admin_notification',
+          to: 'kontakt@zloty-zolwik.pl',
+          subject: 'Nowa wiadomość kontaktowa',
+          data: {
+            customerName: formData.name,
+            customerEmail: formData.email,
+            contactMessage: formData.message
+          }
+        }
+      });
+
+      if (customerEmailError || adminEmailError) {
+        console.error('Email errors:', { customerEmailError, adminEmailError });
+        // Nie przerywamy procesu jeśli emaile się nie wysłały
       }
 
       toast({

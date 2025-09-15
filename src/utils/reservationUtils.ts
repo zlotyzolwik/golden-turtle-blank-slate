@@ -49,6 +49,71 @@ export async function createReservationSecure(data: ReservationData): Promise<Re
 
     const reservationResult = result[0];
     
+    // If reservation was successfully created, send confirmation emails
+    if (reservationResult.success) {
+      try {
+        // Get trip details for emails
+        const { data: tripData } = await supabase
+          .from('trips')
+          .select('title, departure_date, return_date')
+          .eq('id', data.tripId)
+          .single();
+
+        // Send confirmation email to customer
+        const customerEmailPromise = supabase.functions.invoke('send-smtp-email', {
+          body: {
+            type: 'reservation',
+            to: data.customerEmail,
+            subject: 'Potwierdzenie rezerwacji - Złoty Żółwik',
+            data: {
+              customerName: data.customerName,
+              customerEmail: data.customerEmail,
+              tripTitle: tripData?.title || 'Wycieczka',
+              tripDate: tripData?.departure_date 
+                ? new Date(tripData.departure_date).toLocaleDateString('pl-PL')
+                : '',
+              totalPrice: data.totalPrice,
+              numberOfPeople: data.numberOfPeople || 1,
+              notes: data.notes,
+              currency: 'PLN'
+            }
+          }
+        });
+
+        // Send notification to admin
+        const adminEmailPromise = supabase.functions.invoke('send-smtp-email', {
+          body: {
+            type: 'admin_notification',
+            to: 'kontakt@zloty-zolwik.pl',
+            subject: 'Nowa rezerwacja wycieczki',
+            data: {
+              customerName: data.customerName,
+              customerEmail: data.customerEmail,
+              tripTitle: tripData?.title || 'Wycieczka',
+              tripDate: tripData?.departure_date 
+                ? new Date(tripData.departure_date).toLocaleDateString('pl-PL')
+                : '',
+              totalPrice: data.totalPrice,
+              numberOfPeople: data.numberOfPeople || 1,
+              notes: data.notes,
+              currency: 'PLN'
+            }
+          }
+        });
+
+        // Wait for both emails (but don't let email failure break the reservation)
+        const emailResults = await Promise.allSettled([customerEmailPromise, adminEmailPromise]);
+        emailResults.forEach((result, index) => {
+          if (result.status === 'rejected') {
+            console.error(`Email ${index === 0 ? 'customer' : 'admin'} failed:`, result.reason);
+          }
+        });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Don't fail the reservation if emails fail
+      }
+    }
+    
     return {
       success: reservationResult.success,
       reservationId: reservationResult.reservation_id,
