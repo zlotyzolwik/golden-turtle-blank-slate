@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { createStripePayment } from "@/utils/stripeUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Gift, Send } from "lucide-react";
 import Brand from "@/components/Brand";
@@ -22,6 +22,8 @@ const Vouchers = () => {
     recipientName: "",
     senderName: "",
     buyerEmail: "",
+    buyerName: "",
+    buyerPhone: "",
     message: ""
   });
 
@@ -40,25 +42,23 @@ const Vouchers = () => {
       const amount = parseFloat(formData.amount);
       
       // Create Stripe payment for voucher
-      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-payment', {
-        body: {
-          type: 'voucher_purchase',
+      const paymentDetails = {
+        type: 'voucher_purchase' as const,
+        amount: amount * 100, // Convert to cents
+        currency: 'PLN',
+        voucherData: {
           amount: amount * 100, // Convert to cents
-          currency: 'PLN',
-          voucherData: {
-            amount: amount * 100, // Convert to cents
-            senderName: formData.senderName,
-            recipientName: formData.recipientName,
-            recipientEmail: formData.recipientEmail,
-            buyerEmail: formData.buyerEmail,
-            message: formData.message
-          }
+          senderName: formData.senderName,
+          recipientName: formData.recipientName,
+          recipientEmail: formData.recipientEmail,
+          buyerEmail: formData.buyerEmail,
+          buyerName: formData.buyerName || formData.senderName,
+          buyerPhone: formData.buyerPhone,
+          message: formData.message
         }
-      });
+      };
 
-      if (paymentError) {
-        throw new Error(paymentError.message);
-      }
+      const paymentData = await createStripePayment(paymentDetails);
 
       // Redirect to Stripe Checkout
       if (paymentData.url) {
@@ -178,6 +178,33 @@ const Vouchers = () => {
                       required
                       className="mt-1"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="buyerName">Imię i nazwisko kupującego *</Label>
+                      <Input
+                        id="buyerName"
+                        name="buyerName"
+                        placeholder="Twoje pełne imię i nazwisko"
+                        value={formData.buyerName}
+                        onChange={handleInputChange}
+                        required
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="buyerPhone">Telefon kupującego</Label>
+                      <Input
+                        id="buyerPhone"
+                        name="buyerPhone"
+                        type="tel"
+                        placeholder="Twój numer telefonu"
+                        value={formData.buyerPhone}
+                        onChange={handleInputChange}
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -66,70 +66,38 @@ const TripDetails = () => {
   const handleReservation = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast({
-        title: "Wymagane logowanie",
-        description: "Zaloguj się, aby dokonać rezerwacji",
-        variant: "destructive",
-      });
-      navigate('/auth');
-      return;
-    }
-
     if (!trip) return;
 
     try {
       const totalPrice = trip.price * reservationData.number_of_people;
       
-      // Używamy bezpiecznej funkcji do tworzenia rezerwacji
-      const reservationResult = await createReservationSecure({
-        tripId: trip.id,
-        customerName: reservationData.customer_name,
-        customerEmail: reservationData.customer_email,
-        totalPrice: totalPrice,
-        customerPhone: reservationData.customer_phone,
-        numberOfPeople: reservationData.number_of_people,
-        notes: reservationData.notes
+      // Proceed directly to payment with guest reservation
+      const paymentResult = await createStripePayment({
+        type: 'trip_reservation',
+        amount: totalPrice * 100, // Convert to cents
+        currency: trip.currency,
+        tripData: {
+          tripId: trip.id,
+          customerName: reservationData.customer_name,
+          customerEmail: reservationData.customer_email,
+          customerPhone: reservationData.customer_phone,
+          numberOfPeople: reservationData.number_of_people,
+          totalPrice: totalPrice,
+          notes: reservationData.notes
+        }
       });
 
-      if (!reservationResult.success) {
-        throw new Error(reservationResult.message);
-      }
-
-      const reservationId = reservationResult.reservationId;
-
-      // Refresh trip data to show updated spots
-      await fetchTrip();
-
-      // Redirect to Stripe Checkout for payment
-      try {
-        const paymentResult = await createStripePayment({
-          type: 'trip_reservation',
-          amount: totalPrice * 100, // Convert to cents
-          currency: trip.currency,
-          reservationId: reservationId
-        });
-
-        if (paymentResult.url) {
-          // Close dialog and redirect to Stripe Checkout
-          setReservationOpen(false);
-          window.location.href = paymentResult.url;
-          return;
-        }
-      } catch (paymentError) {
-        console.error('Payment error:', paymentError);
-        toast({
-          title: "Błąd płatności",
-          description: "Nie udało się przekierować do płatności. Spróbuj ponownie.",
-          variant: "destructive",
-        });
+      if (paymentResult.url) {
+        // Close dialog and redirect to Stripe Checkout
+        setReservationOpen(false);
+        window.open(paymentResult.url, '_blank');
         return;
       }
     } catch (error) {
-      console.error('Error creating reservation:', error);
+      console.error('Payment error:', error);
       toast({
-        title: "Błąd",
-        description: "Nie udało się złożyć rezerwacji. Spróbuj ponownie.",
+        title: "Błąd płatności",
+        description: error instanceof Error ? error.message : "Wystąpił błąd podczas tworzenia płatności",
         variant: "destructive",
       });
     }

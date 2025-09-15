@@ -44,6 +44,33 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       gallery_images: {
         Row: {
           created_at: string
@@ -168,6 +195,7 @@ export type Database = {
         Row: {
           created_at: string
           customer_email: string
+          customer_id: string | null
           customer_name: string
           customer_phone: string | null
           id: string
@@ -179,12 +207,13 @@ export type Database = {
           total_price: number
           trip_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           voucher_code_used: string | null
         }
         Insert: {
           created_at?: string
           customer_email: string
+          customer_id?: string | null
           customer_name: string
           customer_phone?: string | null
           id?: string
@@ -196,12 +225,13 @@ export type Database = {
           total_price: number
           trip_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           voucher_code_used?: string | null
         }
         Update: {
           created_at?: string
           customer_email?: string
+          customer_id?: string | null
           customer_name?: string
           customer_phone?: string | null
           id?: string
@@ -213,10 +243,17 @@ export type Database = {
           total_price?: number
           trip_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           voucher_code_used?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "reservations_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reservations_trip_id_fkey"
             columns: ["trip_id"]
@@ -302,6 +339,7 @@ export type Database = {
           code: string
           created_at: string
           currency: string | null
+          customer_id: string | null
           expires_at: string | null
           id: string
           message: string | null
@@ -317,6 +355,7 @@ export type Database = {
           code: string
           created_at?: string
           currency?: string | null
+          customer_id?: string | null
           expires_at?: string | null
           id?: string
           message?: string | null
@@ -332,6 +371,7 @@ export type Database = {
           code?: string
           created_at?: string
           currency?: string | null
+          customer_id?: string | null
           expires_at?: string | null
           id?: string
           message?: string | null
@@ -341,13 +381,41 @@ export type Database = {
           status?: string | null
           used_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vouchers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      create_or_get_customer: {
+        Args: { p_email: string; p_name: string; p_phone?: string }
+        Returns: string
+      }
+      create_reservation_guest: {
+        Args: {
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone?: string
+          p_notes?: string
+          p_number_of_people?: number
+          p_total_price: number
+          p_trip_id: string
+        }
+        Returns: {
+          message: string
+          reservation_id: string
+          success: boolean
+        }[]
+      }
       create_reservation_secure: {
         Args: {
           p_customer_email: string
@@ -362,6 +430,25 @@ export type Database = {
           message: string
           reservation_id: string
           success: boolean
+        }[]
+      }
+      create_voucher_guest: {
+        Args: {
+          buyer_email: string
+          buyer_name: string
+          buyer_phone?: string
+          expires_at?: string
+          recipient_email?: string
+          recipient_name?: string
+          sender_name?: string
+          voucher_amount: number
+          voucher_currency?: string
+          voucher_message?: string
+        }
+        Returns: {
+          message: string
+          success: boolean
+          voucher_code: string
         }[]
       }
       create_voucher_public: {

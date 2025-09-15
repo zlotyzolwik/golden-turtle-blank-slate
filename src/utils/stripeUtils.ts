@@ -8,13 +8,23 @@ export interface CreatePaymentParams {
   type: 'trip_reservation' | 'voucher_purchase';
   amount: number;
   currency?: string;
-  reservationId?: string;
+  tripData?: {
+    tripId: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string;
+    numberOfPeople: number;
+    totalPrice: number;
+    notes?: string;
+  };
   voucherData?: {
     amount: number;
     senderName: string;
     recipientName: string;
     recipientEmail: string;
     buyerEmail: string;
+    buyerName: string;
+    buyerPhone?: string;
     message?: string;
   };
 }
@@ -25,7 +35,7 @@ export const createStripePayment = async (params: CreatePaymentParams) => {
       type: params.type,
       amount: params.amount,
       currency: params.currency || 'PLN',
-      reservationId: params.reservationId,
+      tripData: params.tripData,
       voucherData: params.voucherData
     }
   });
