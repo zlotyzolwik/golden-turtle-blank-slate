@@ -31,9 +31,8 @@ const AboutSection = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-6">O Nas</h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Jesteśmy rodziną pasjonatów podróży, którzy od lat pomagają ludziom odkrywać 
-            najpiękniejsze zakątki świata. Nasza misja to tworzenie niezapomnianych 
-            wspomnień i pokazywanie, że podróżowanie może być proste, bezpieczne i pełne radości.
+            Profesjonalna koordynacja wycieczek jedno- i dwudniowych dla grup i osób indywidualnych. 
+            Odkryj piękno Polski i Europy z nami.
           </p>
         </div>
 
