@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -153,8 +153,7 @@ const ContactForm = () => {
                   <Mail className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-2">E-mail</h3>
-                    <p className="text-muted-foreground">biuro@wycieczki.pl</p>
-                    <p className="text-muted-foreground">rezerwacje@wycieczki.pl</p>
+                    <p className="text-muted-foreground">kontakt@zloty-zolwik.pl</p>
                   </div>
                 </div>
               </CardContent>
@@ -166,27 +165,13 @@ const ContactForm = () => {
                   <Phone className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-2">Telefon</h3>
-                    <p className="text-muted-foreground">+48 123 456 789</p>
+                    <p className="text-muted-foreground">514176996</p>
                     <p className="text-sm text-muted-foreground">Pn-Pt: 9:00-17:00</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <MapPin className="h-6 w-6 text-primary mt-1" />
-                  <div>
-                    <h3 className="font-semibold mb-2">Adres biura</h3>
-                    <p className="text-muted-foreground">
-                      ul. Podróżnicza 123<br />
-                      00-001 Warszawa
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
