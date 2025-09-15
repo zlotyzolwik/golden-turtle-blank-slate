@@ -80,6 +80,60 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          reservation_id: string | null
+          status: string
+          stripe_payment_intent_id: string | null
+          type: string
+          updated_at: string
+          voucher_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          reservation_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          type: string
+          updated_at?: string
+          voucher_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          reservation_id?: string | null
+          status?: string
+          stripe_payment_intent_id?: string | null
+          type?: string
+          updated_at?: string
+          voucher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: false
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_voucher_id_fkey"
+            columns: ["voucher_id"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -121,10 +175,12 @@ export type Database = {
           number_of_people: number
           payment_status: string | null
           status: string | null
+          stripe_payment_intent_id: string | null
           total_price: number
           trip_id: string | null
           updated_at: string
           user_id: string
+          voucher_code_used: string | null
         }
         Insert: {
           created_at?: string
@@ -136,10 +192,12 @@ export type Database = {
           number_of_people?: number
           payment_status?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
           total_price: number
           trip_id?: string | null
           updated_at?: string
           user_id: string
+          voucher_code_used?: string | null
         }
         Update: {
           created_at?: string
@@ -151,10 +209,12 @@ export type Database = {
           number_of_people?: number
           payment_status?: string | null
           status?: string | null
+          stripe_payment_intent_id?: string | null
           total_price?: number
           trip_id?: string | null
           updated_at?: string
           user_id?: string
+          voucher_code_used?: string | null
         }
         Relationships: [
           {
@@ -238,6 +298,7 @@ export type Database = {
       vouchers: {
         Row: {
           amount: number
+          buyer_email: string | null
           code: string
           created_at: string
           currency: string | null
@@ -252,6 +313,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          buyer_email?: string | null
           code: string
           created_at?: string
           currency?: string | null
@@ -266,6 +328,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          buyer_email?: string | null
           code?: string
           created_at?: string
           currency?: string | null
@@ -302,15 +365,26 @@ export type Database = {
         }[]
       }
       create_voucher_public: {
-        Args: {
-          expires_at?: string
-          recipient_email?: string
-          recipient_name?: string
-          sender_name?: string
-          voucher_amount: number
-          voucher_currency?: string
-          voucher_message?: string
-        }
+        Args:
+          | {
+              buyer_email?: string
+              expires_at?: string
+              recipient_email?: string
+              recipient_name?: string
+              sender_name?: string
+              voucher_amount: number
+              voucher_currency?: string
+              voucher_message?: string
+            }
+          | {
+              expires_at?: string
+              recipient_email?: string
+              recipient_name?: string
+              sender_name?: string
+              voucher_amount: number
+              voucher_currency?: string
+              voucher_message?: string
+            }
         Returns: {
           message: string
           success: boolean
