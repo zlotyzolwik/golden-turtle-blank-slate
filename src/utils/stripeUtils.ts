@@ -1,8 +1,8 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { supabase } from '@/integrations/supabase/client';
 
-// Initialize Stripe (you'll need to add your publishable key)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_...');
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe('pk_test_your_stripe_publishable_key_here');
 
 export interface CreatePaymentParams {
   type: 'trip_reservation' | 'voucher_purchase';
