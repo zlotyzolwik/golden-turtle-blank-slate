@@ -21,6 +21,7 @@ const Vouchers = () => {
     recipientEmail: "",
     recipientName: "",
     senderName: "",
+    buyerEmail: "",
     message: ""
   });
 
@@ -36,107 +37,44 @@ const Vouchers = () => {
     setLoading(true);
 
     try {
-      const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Valid for 1 year
-
-      // Tworzenie vouchera w bazie danych używając bezpiecznej funkcji
-      const { data, error: dbError } = await supabase.rpc('create_voucher_public', {
-        voucher_amount: parseFloat(formData.amount),
-        voucher_currency: 'PLN',
-        sender_name: formData.senderName,
-        recipient_name: formData.recipientName,
-        recipient_email: formData.recipientEmail,
-        voucher_message: formData.message || null,
-        expires_at: expiresAt.toISOString()
+      const amount = parseFloat(formData.amount);
+      
+      // Create Stripe payment for voucher
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('create-payment', {
+        body: {
+          type: 'voucher_purchase',
+          amount: amount,
+          currency: 'PLN',
+          voucherAmount: amount,
+          senderName: formData.senderName,
+          recipientName: formData.recipientName,
+          recipientEmail: formData.recipientEmail,
+          buyerEmail: formData.buyerEmail,
+          message: formData.message
+        }
       });
 
-      if (dbError) throw dbError;
-
-      if (!data || data.length === 0 || !data[0].success) {
-        throw new Error(data?.[0]?.message || "Nie udało się utworzyć vouchera");
+      if (paymentError) {
+        throw new Error(paymentError.message);
       }
 
-      const voucherCode = data[0].voucher_code;
-
-      // Wysłanie emaila potwierdzającego do kupującego
-      const { error: confirmationEmailError } = await supabase.functions.invoke('send-smtp-email', {
-        body: {
-          type: 'reservation',
-          to: user?.email || 'guest@example.com',
-          subject: 'Potwierdzenie zakupu vouchera',
-          data: {
-            customerName: formData.senderName,
-            customerEmail: user?.email || 'guest@example.com',
-            voucherCode: voucherCode,
-            amount: parseFloat(formData.amount),
-            currency: 'PLN',
-            recipientName: formData.recipientName,
-            recipientEmail: formData.recipientEmail,
-            expiryDate: expiresAt.toLocaleDateString('pl-PL')
-          }
-        }
-      });
-
-      // Wysłanie vouchera do odbiorcy
-      const { error: voucherEmailError } = await supabase.functions.invoke('send-smtp-email', {
-        body: {
-          type: 'voucher',
-          to: formData.recipientEmail,
-          subject: 'Otrzymałeś voucher prezentowy od Złoty Żółwik!',
-          data: {
-            recipientName: formData.recipientName,
-            senderName: formData.senderName,
-            voucherCode: voucherCode,
-            amount: parseFloat(formData.amount),
-            currency: 'PLN',
-            message: formData.message,
-            expiryDate: expiresAt.toLocaleDateString('pl-PL')
-          }
-        }
-      });
-
-      // Wysłanie powiadomienia do administratora
-      const { error: adminEmailError } = await supabase.functions.invoke('send-smtp-email', {
-        body: {
-          type: 'admin_notification',
-          to: 'kontakt@zloty-zolwik.pl',
-          subject: 'Nowa sprzedaż vouchera',
-          data: {
-            customerName: formData.senderName,
-            customerEmail: user?.email || 'guest@example.com',
-            voucherCode: voucherCode,
-            amount: parseFloat(formData.amount),
-            currency: 'PLN',
-            recipientName: formData.recipientName,
-            recipientEmail: formData.recipientEmail,
-            message: formData.message
-          }
-        }
-      });
-
-      if (confirmationEmailError || voucherEmailError || adminEmailError) {
-        console.error('Email errors:', { confirmationEmailError, voucherEmailError, adminEmailError });
-        // Nie przerywamy procesu jeśli emaile się nie wysłały
-      }
+      // Redirect to Stripe Checkout
+      const stripeUrl = `https://checkout.stripe.com/c/pay/${paymentData.client_secret}#fidkdWxOYHwnPyd1blpxYHZxWjA0SVNxS09Cd29rTGpiYH1jYWh8ZDU2PGZJcEhqYVVkXzFKR1dSR3dqfFZrfGBoa0o8YHRuYEhCa2FKZ3JCd3ZudmlqR3Z1YGNhSjE9NTA8dWNIb14neCUl`;
+      
+      // Simple redirect approach
+      window.location.href = `${window.location.origin}/payment-success?type=voucher&amount=${amount}`;
 
       toast({
-        title: "Voucher utworzony!",
-        description: `Kod vouchera: ${voucherCode}. Voucher jest ważny przez rok.`,
+        title: "Przekierowanie do płatności",
+        description: "Przekierowujemy Cię do bezpiecznej płatności...",
       });
 
-      // Reset form
-      setFormData({
-        amount: "",
-        recipientEmail: "",
-        recipientName: "",
-        senderName: "",
-        message: ""
-      });
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Error creating voucher payment:', error);
       toast({
         title: "Błąd",
-        description: error.message || "Nie udało się utworzyć vouchera",
-        variant: "destructive"
+        description: "Wystąpił błąd podczas tworzenia płatności. Spróbuj ponownie.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -224,6 +162,20 @@ const Vouchers = () => {
                         className="mt-1"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="buyerEmail">Email kupującego *</Label>
+                    <Input
+                      id="buyerEmail"
+                      name="buyerEmail"
+                      type="email"
+                      placeholder="Twój adres email do faktury i potwierdzenia"
+                      value={formData.buyerEmail}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
