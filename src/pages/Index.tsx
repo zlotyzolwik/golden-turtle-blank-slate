@@ -58,7 +58,7 @@ const Index = () => {
             <div className="text-center mb-16">
               <h2 className="text-4xl font-bold mb-6">Nasze Wycieczki</h2>
               <p className="text-xl text-muted-foreground">
-                Odkryj najpiękniejsze zakątki Europy z naszymi starannie przygotowanymi wycieczkami
+                Odkryj naszą bogatą ofertę wycieczek do najpiękniejszych miejsc w Polsce i Europie. Każda wycieczka to niezapomniane wspomnienia i profesjonalna opieka koordynatora
               </p>
             </div>
             <TripGrid onTripSelect={handleTripSelect} />
