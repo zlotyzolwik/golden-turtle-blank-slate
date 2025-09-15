@@ -124,7 +124,7 @@ export type Database = {
           total_price: number
           trip_id: string | null
           updated_at: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -139,7 +139,7 @@ export type Database = {
           total_price: number
           trip_id?: string | null
           updated_at?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -154,7 +154,7 @@ export type Database = {
           total_price?: number
           trip_id?: string | null
           updated_at?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -282,6 +282,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_reservation_secure: {
+        Args: {
+          p_customer_email: string
+          p_customer_name: string
+          p_customer_phone?: string
+          p_notes?: string
+          p_number_of_people?: number
+          p_total_price: number
+          p_trip_id: string
+        }
+        Returns: {
+          message: string
+          reservation_id: string
+          success: boolean
+        }[]
+      }
       create_voucher_public: {
         Args: {
           expires_at?: string

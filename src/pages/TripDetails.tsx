@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { MapPin, Calendar, Users, Star, ArrowLeft, Phone, Mail } from "lucide-react";
+import { createReservationSecure, ReservationData } from "@/utils/reservationUtils";
 
 const TripDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,16 +80,22 @@ const TripDetails = () => {
     try {
       const totalPrice = trip.price * reservationData.number_of_people;
       
-      const { error: dbError } = await supabase
-        .from('reservations')
-        .insert([{
-          trip_id: trip.id,
-          user_id: user.id,
-          ...reservationData,
-          total_price: totalPrice
-        }]);
+      // Używamy bezpiecznej funkcji do tworzenia rezerwacji
+      const reservationResult = await createReservationSecure({
+        tripId: trip.id,
+        customerName: reservationData.customer_name,
+        customerEmail: reservationData.customer_email,
+        totalPrice: totalPrice,
+        customerPhone: reservationData.customer_phone,
+        numberOfPeople: reservationData.number_of_people,
+        notes: reservationData.notes
+      });
 
-      if (dbError) throw dbError;
+      if (!reservationResult.success) {
+        throw new Error(reservationResult.message);
+      }
+
+      const reservationId = reservationResult.reservationId;
 
       // Wysłanie emaila potwierdzającego
       const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
