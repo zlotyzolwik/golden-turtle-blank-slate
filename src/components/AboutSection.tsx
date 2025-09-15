@@ -20,7 +20,7 @@ const AboutSection = () => {
     },
     {
       icon: Users,
-      title: "Profesjonalna Obsługa",
+      title: "Koordynacja całej wycieczki",
       description: "Doświadczeni przewodnicy i 24/7 wsparcie podczas podróży"
     }
   ];
