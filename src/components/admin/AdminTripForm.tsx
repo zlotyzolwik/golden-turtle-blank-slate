@@ -94,13 +94,20 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
 
   const uploadImage = async (file: File, folder: string): Promise<string> => {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}.${fileExt}`;
+    const uniqueId = crypto.randomUUID();
+    const fileName = `${folder}/${Date.now()}-${uniqueId}.${fileExt}`;
     
     const { error: uploadError } = await supabase.storage
       .from('images')
       .upload(fileName, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      if (uploadError.message?.includes('already exists')) {
+        throw new Error('Plik o tej nazwie już istnieje. Spróbuj ponownie.');
+      }
+      throw new Error(`Błąd przesyłania pliku: ${uploadError.message}`);
+    }
 
     const { data } = supabase.storage
       .from('images')
