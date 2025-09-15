@@ -191,6 +191,8 @@ async function handleCheckoutSessionSuccess(session: Stripe.Checkout.Session) {
 
   if (type === 'voucher_purchase') {
     await handleVoucherPurchaseFromCheckout(session, metadata);
+  } else if (type === 'trip_reservation') {
+    await handleTripReservationFromCheckout(session, metadata);
   }
 }
 
@@ -254,14 +256,83 @@ async function handleVoucherPurchaseFromCheckout(session: Stripe.Checkout.Sessio
   });
 }
 
+async function handleTripReservationFromCheckout(session: Stripe.Checkout.Session, metadata: any) {
+  const reservationId = metadata.reservation_id;
+  const userEmail = metadata.user_email;
+
+  console.log('Processing trip reservation after successful checkout:', {
+    reservationId,
+    userEmail,
+    sessionId: session.id
+  });
+
+  // Update reservation status
+  const { data: reservation, error: reservationUpdateError } = await supabaseClient
+    .from('reservations')
+    .update({ 
+      payment_status: 'paid', 
+      status: 'confirmed',
+      stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+        ? session.payment_intent 
+        : session.payment_intent?.id
+    })
+    .eq('id', reservationId)
+    .select('*, trips(*)')
+    .single();
+
+  if (reservationUpdateError) {
+    console.error('Error updating reservation:', reservationUpdateError);
+    return;
+  }
+
+  // Send reservation confirmation emails
+  if (reservation) {
+    await sendReservationEmails(reservation, session.payment_intent);
+  }
+}
+
 async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
-  console.log(`Payment failed for: ${paymentIntent.id}`);
+  console.log('Payment failed:', paymentIntent.id);
   
   // Update payment status
-  await supabaseClient
+  const { error: paymentError } = await supabaseClient
     .from('payments')
     .update({ status: 'canceled' })
     .eq('stripe_payment_intent_id', paymentIntent.id);
+
+  if (paymentError) {
+    console.error('Error updating payment status:', paymentError);
+  }
+
+  // Handle trip reservation failure - restore spots
+  const { data: payment } = await supabaseClient
+    .from('payments')
+    .select('reservation_id, reservations(number_of_people, trip_id)')
+    .eq('stripe_payment_intent_id', paymentIntent.id)
+    .single();
+
+  if (payment?.reservation_id && payment.reservations) {
+    const reservation = payment.reservations as any;
+    
+    // Update reservation status
+    await supabaseClient
+      .from('reservations')
+      .update({ 
+        payment_status: 'failed', 
+        status: 'cancelled' 
+      })
+      .eq('id', payment.reservation_id);
+
+    // Restore available spots directly with SQL
+    await supabaseClient
+      .from('trips')
+      .update({ 
+        available_spots: supabaseClient.raw(`available_spots + ${reservation.number_of_people}`)
+      })
+      .eq('id', reservation.trip_id);
+
+    console.log(`Restored ${reservation.number_of_people} spots for trip ${reservation.trip_id}`);
+  }
 }
 
 async function sendReservationEmails(reservation: any, paymentIntent: Stripe.PaymentIntent) {

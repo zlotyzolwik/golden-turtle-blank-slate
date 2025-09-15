@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { MapPin, Calendar, Users, Star, ArrowLeft, Phone, Mail } from "lucide-react";
 import { createReservationSecure, ReservationData } from "@/utils/reservationUtils";
+import { createStripePayment } from "@/utils/stripeUtils";
 
 const TripDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -97,47 +98,29 @@ const TripDetails = () => {
 
       const reservationId = reservationResult.reservationId;
 
-      // Wysłanie emaila potwierdzającego
-      const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
-        body: {
-          type: 'reservation',
-          customerName: reservationData.customer_name,
-          customerEmail: reservationData.customer_email,
-          details: {
-            tripTitle: trip.title,
-            destination: trip.destination,
-            departureDate: format(new Date(trip.departure_date), "dd MMM yyyy", { locale: pl }),
-            returnDate: format(new Date(trip.return_date), "dd MMM yyyy", { locale: pl }),
-            numberOfPeople: reservationData.number_of_people,
-            totalPrice: totalPrice.toLocaleString('pl-PL'),
-            currency: trip.currency,
-            status: 'pending',
-            notes: reservationData.notes,
-            customerName: reservationData.customer_name,
-            customerEmail: reservationData.customer_email,
-            customerPhone: reservationData.customer_phone
-          }
+      // Redirect to Stripe Checkout for payment
+      try {
+        const paymentResult = await createStripePayment({
+          type: 'trip_reservation',
+          amount: totalPrice * 100, // Convert to cents
+          currency: trip.currency,
+          reservationId: reservationId
+        });
+
+        if (paymentResult.url) {
+          // Redirect to Stripe Checkout
+          window.location.href = paymentResult.url;
+          return;
         }
-      });
-
-      if (emailError) {
-        console.error('Email error:', emailError);
-        // Nie przerywamy procesu jeśli email się nie wysłał
+      } catch (paymentError) {
+        console.error('Payment error:', paymentError);
+        toast({
+          title: "Błąd płatności",
+          description: "Nie udało się przekierować do płatności. Spróbuj ponownie.",
+          variant: "destructive",
+        });
+        return;
       }
-
-      toast({
-        title: "Rezerwacja złożona!",
-        description: "Skontaktujemy się z Tobą w ciągu 24 godzin.",
-      });
-
-      setReservationOpen(false);
-      setReservationData({
-        customer_name: "",
-        customer_email: "",
-        customer_phone: "",
-        number_of_people: 1,
-        notes: ""
-      });
     } catch (error) {
       console.error('Error creating reservation:', error);
       toast({
@@ -395,7 +378,7 @@ const TripDetails = () => {
                       </div>
 
                       <Button type="submit" className="w-full">
-                        Złóż rezerwację
+                        Przejdź do płatności
                       </Button>
                     </form>
                   </DialogContent>
