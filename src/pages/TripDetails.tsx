@@ -233,21 +233,16 @@ const TripDetails = () => {
               </CardContent>
             </Card>
 
-            {/* Itinerary */}
-            {itineraryEntries.length > 0 && (
+            {/* Pickup Locations */}
+            {trip.pickup_locations && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Program wycieczki</CardTitle>
+                  <CardTitle>Miejsca zbiórek</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {itineraryEntries.map(([day, description], index) => (
-                      <div key={index} className="border-l-4 border-primary pl-4">
-                        <h4 className="font-semibold text-lg capitalize">{day}</h4>
-                        <p className="text-muted-foreground">{String(description)}</p>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {trip.pickup_locations}
+                  </p>
                 </CardContent>
               </Card>
             )}

@@ -182,6 +182,7 @@ export type Database = {
           itinerary: Json | null
           location_lat: number | null
           location_lng: number | null
+          pickup_locations: string | null
           price: number
           return_date: string | null
           title: string
@@ -203,6 +204,7 @@ export type Database = {
           itinerary?: Json | null
           location_lat?: number | null
           location_lng?: number | null
+          pickup_locations?: string | null
           price: number
           return_date?: string | null
           title: string
@@ -224,6 +226,7 @@ export type Database = {
           itinerary?: Json | null
           location_lat?: number | null
           location_lng?: number | null
+          pickup_locations?: string | null
           price?: number
           return_date?: string | null
           title?: string

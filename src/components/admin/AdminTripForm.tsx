@@ -24,6 +24,7 @@ const tripFormSchema = z.object({
   return_date: z.string().min(1, "Data powrotu jest wymagana"),
   total_spots: z.number().min(1, "Liczba miejsc musi być większa od 0"),
   available_spots: z.number().min(0, "Dostępne miejsca nie mogą być ujemne"),
+  pickup_locations: z.string().optional(),
   location_lat: z.number().optional(),
   location_lng: z.number().optional(),
 });
@@ -57,6 +58,7 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
       return_date: trip.return_date,
       total_spots: trip.total_spots,
       available_spots: trip.available_spots,
+      pickup_locations: trip.pickup_locations || "",
       location_lat: Number(trip.location_lat) || undefined,
       location_lng: Number(trip.location_lng) || undefined,
     } : {
@@ -146,6 +148,7 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
         return_date: data.return_date,
         total_spots: data.total_spots,
         available_spots: data.available_spots,
+        pickup_locations: data.pickup_locations || null,
         location_lat: data.location_lat || null,
         location_lng: data.location_lng || null,
         featured_image: featuredImageUrl,
@@ -242,6 +245,16 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
               id="destination"
               {...form.register("destination")}
               placeholder="Miejsce docelowe"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="pickup_locations">Miejsca zbiórek</Label>
+            <Textarea
+              id="pickup_locations"
+              {...form.register("pickup_locations")}
+              placeholder="Miejsca i godziny zbiórek (każde w nowej linii)"
+              rows={3}
             />
           </div>
         </CardContent>

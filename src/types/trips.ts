@@ -15,6 +15,7 @@ export interface Trip {
   itinerary: any;
   location_lat: number;
   location_lng: number;
+  pickup_locations?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
