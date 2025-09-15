@@ -282,9 +282,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_voucher_public: {
+        Args: {
+          expires_at?: string
+          recipient_email?: string
+          recipient_name?: string
+          sender_name?: string
+          voucher_amount: number
+          voucher_currency?: string
+          voucher_message?: string
+        }
+        Returns: {
+          message: string
+          success: boolean
+          voucher_code: string
+        }[]
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      use_voucher_by_code: {
+        Args: { user_id?: string; voucher_code: string }
+        Returns: {
+          amount: number
+          message: string
+          success: boolean
+          voucher_id: string
+        }[]
+      }
+      validate_voucher_by_code: {
+        Args: { voucher_code: string }
+        Returns: {
+          amount: number
+          currency: string
+          expires_at: string
+          is_valid: boolean
+          voucher_id: string
+        }[]
       }
     }
     Enums: {

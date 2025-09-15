@@ -31,35 +31,32 @@ const Vouchers = () => {
     });
   };
 
-  const generateVoucherCode = () => {
-    return `ZZ${Date.now().toString().slice(-6)}${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const voucherCode = generateVoucherCode();
       const expiresAt = new Date();
       expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Valid for 1 year
 
-      // Tworzenie vouchera w bazie danych
-      const { error: dbError } = await supabase
-        .from('vouchers')
-        .insert({
-          code: voucherCode,
-          amount: parseFloat(formData.amount),
-          currency: 'PLN',
-          recipient_email: formData.recipientEmail,
-          recipient_name: formData.recipientName,
-          sender_name: formData.senderName,
-          message: formData.message,
-          expires_at: expiresAt.toISOString(),
-          status: 'active'
-        });
+      // Tworzenie vouchera w bazie danych używając bezpiecznej funkcji
+      const { data, error: dbError } = await supabase.rpc('create_voucher_public', {
+        voucher_amount: parseFloat(formData.amount),
+        voucher_currency: 'PLN',
+        sender_name: formData.senderName,
+        recipient_name: formData.recipientName,
+        recipient_email: formData.recipientEmail,
+        voucher_message: formData.message || null,
+        expires_at: expiresAt.toISOString()
+      });
 
       if (dbError) throw dbError;
+
+      if (!data || data.length === 0 || !data[0].success) {
+        throw new Error(data?.[0]?.message || "Nie udało się utworzyć vouchera");
+      }
+
+      const voucherCode = data[0].voucher_code;
 
       // Wysłanie emaila potwierdzającego do kupującego
       const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
