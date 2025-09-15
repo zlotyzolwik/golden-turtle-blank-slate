@@ -10,7 +10,7 @@ const AboutSection = () => {
     },
     {
       icon: Award,
-      title: "Doświadczenie",
+      title: "Wygodny transport",
       description: "Ponad 10,000 zadowolonych klientów i setki udanych wycieczek"
     },
     {
