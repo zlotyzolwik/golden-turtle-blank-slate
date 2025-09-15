@@ -323,13 +323,12 @@ async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
       })
       .eq('id', payment.reservation_id);
 
-    // Restore available spots directly with SQL
+    // Restore available spots using the new function
     await supabaseClient
-      .from('trips')
-      .update({ 
-        available_spots: supabaseClient.raw(`available_spots + ${reservation.number_of_people}`)
-      })
-      .eq('id', reservation.trip_id);
+      .rpc('restore_trip_spots', {
+        p_trip_id: reservation.trip_id,
+        p_spots_to_restore: reservation.number_of_people
+      });
 
     console.log(`Restored ${reservation.number_of_people} spots for trip ${reservation.trip_id}`);
   }

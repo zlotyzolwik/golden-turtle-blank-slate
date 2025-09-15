@@ -395,6 +395,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      restore_trip_spots: {
+        Args: { p_spots_to_restore: number; p_trip_id: string }
+        Returns: undefined
+      }
       use_voucher_by_code: {
         Args: { user_id?: string; voucher_code: string }
         Returns: {

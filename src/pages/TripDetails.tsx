@@ -98,6 +98,9 @@ const TripDetails = () => {
 
       const reservationId = reservationResult.reservationId;
 
+      // Refresh trip data to show updated spots
+      await fetchTrip();
+
       // Redirect to Stripe Checkout for payment
       try {
         const paymentResult = await createStripePayment({
@@ -108,7 +111,8 @@ const TripDetails = () => {
         });
 
         if (paymentResult.url) {
-          // Redirect to Stripe Checkout
+          // Close dialog and redirect to Stripe Checkout
+          setReservationOpen(false);
           window.location.href = paymentResult.url;
           return;
         }
