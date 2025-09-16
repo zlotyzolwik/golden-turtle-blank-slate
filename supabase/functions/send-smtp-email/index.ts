@@ -53,14 +53,28 @@ const handler = async (req: Request): Promise<Response> => {
       }
     });
 
-    const logoUrl = "https://xgvvcovmjqcpfmghawdy.supabase.co/storage/v1/object/public/images/logo-zloty-zolwik.png";
-
-    // Logo attachment for emails
-    const logoAttachment = [{
-      filename: 'logo.png',
-      path: logoUrl,
-      cid: 'logo@zz'
-    }];
+    // Get logo attachment with error handling
+    let logoAttachment: any[] = [];
+    try {
+      const logoUrl = "https://xgvvcovmjqcpfmghawdy.supabase.co/storage/v1/object/public/images/logo-zloty-zolwik.png";
+      console.log('Attempting to fetch logo from:', logoUrl);
+      
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = await logoResponse.arrayBuffer();
+        logoAttachment = [{
+          filename: 'logo-zloty-zolwik.png',
+          content: new Uint8Array(logoBuffer),
+          cid: 'logo@zz'
+        }];
+        console.log('Logo attachment created successfully');
+      } else {
+        console.warn('Logo not found, sending email without logo attachment');
+      }
+    } catch (error) {
+      console.warn('Failed to load logo attachment:', error);
+      // Continue without logo - don't fail the entire email
+    }
 
     // Generate HTML content based on email type
     let htmlContent = "";
