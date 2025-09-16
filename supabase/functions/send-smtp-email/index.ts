@@ -10,6 +10,7 @@ interface EmailRequest {
   type: 'contact' | 'reservation' | 'voucher' | 'admin_notification';
   to: string;
   subject: string;
+  replyTo?: string;
   data: {
     customerName?: string;
     customerEmail?: string;
@@ -27,6 +28,10 @@ interface EmailRequest {
     numberOfPeople?: number;
     notes?: string;
     contactMessage?: string;
+    contactSubject?: string;
+    customerPhone?: string;
+    ip?: string;
+    userAgent?: string;
   };
 }
 
@@ -37,16 +42,32 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, to, subject, data }: EmailRequest = await req.json();
+    // Validate SMTP configuration
+    const smtpHost = Deno.env.get("SMTP_HOST");
+    const smtpUser = Deno.env.get("SMTP_USER");
+    const smtpPass = Deno.env.get("SMTP_PASS");
+    const contactTo = Deno.env.get("CONTACT_TO") || "kontakt@zloty-zolwik.pl";
+    
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      console.error("Missing SMTP configuration:", { 
+        hasHost: !!smtpHost, 
+        hasUser: !!smtpUser, 
+        hasPass: !!smtpPass 
+      });
+      throw new Error("SMTP configuration is incomplete");
+    }
+
+    const { type, to, subject, data, replyTo }: EmailRequest = await req.json();
+    console.log("Processing email request:", { type, to: to?.substring(0, 20) + "...", subject, hasReplyTo: !!replyTo });
 
     // Create nodemailer transporter with SMTP configuration
     const transporter = createTransport({
-      host: Deno.env.get("SMTP_HOST"),
+      host: smtpHost,
       port: parseInt(Deno.env.get("SMTP_PORT") || "587"),
       secure: false, // true for 465, false for other ports
       auth: {
-        user: Deno.env.get("SMTP_USER"),
-        pass: Deno.env.get("SMTP_PASS"),
+        user: smtpUser,
+        pass: smtpPass,
       },
       tls: {
         ciphers: 'SSLv3'
@@ -54,26 +75,46 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     const logoUrl = "https://xgvvcovmjqcpfmghawdy.supabase.co/storage/v1/object/public/images/logo-zloty-zolwik.png";
+    const fallbackLogoUrl = "https://via.placeholder.com/200x60/1e40af/ffffff?text=Złoty+Żółwik";
 
     // Generate HTML content based on email type
     let htmlContent = "";
     
-    if (type === 'contact') {
-      htmlContent = generateContactEmailHtml(data, logoUrl);
-    } else if (type === 'reservation') {
-      htmlContent = generateReservationEmailHtml(data, logoUrl);
-    } else if (type === 'voucher') {
-      htmlContent = generateVoucherEmailHtml(data, logoUrl);
-    } else if (type === 'admin_notification') {
-      htmlContent = generateAdminNotificationHtml(data, logoUrl, subject);
+    try {
+      if (type === 'contact') {
+        htmlContent = generateContactEmailHtml(data, logoUrl);
+      } else if (type === 'reservation') {
+        htmlContent = generateReservationEmailHtml(data, logoUrl);
+      } else if (type === 'voucher') {
+        htmlContent = generateVoucherEmailHtml(data, logoUrl);
+      } else if (type === 'admin_notification') {
+        htmlContent = generateAdminNotificationHtml(data, logoUrl, subject, contactTo);
+      }
+    } catch (logoError) {
+      console.warn("Logo loading failed, using fallback:", logoError);
+      if (type === 'contact') {
+        htmlContent = generateContactEmailHtml(data, fallbackLogoUrl);
+      } else if (type === 'reservation') {
+        htmlContent = generateReservationEmailHtml(data, fallbackLogoUrl);
+      } else if (type === 'voucher') {
+        htmlContent = generateVoucherEmailHtml(data, fallbackLogoUrl);
+      } else if (type === 'admin_notification') {
+        htmlContent = generateAdminNotificationHtml(data, fallbackLogoUrl, subject, contactTo);
+      }
     }
 
-    const mailOptions = {
-      from: `"Złoty Żółwik" <${Deno.env.get("SMTP_USER")}>`,
+    const mailOptions: any = {
+      from: `"Złoty Żółwik" <${smtpUser}>`,
       to: to,
       subject: subject,
       html: htmlContent,
     };
+
+    // Add replyTo if provided
+    if (replyTo) {
+      mailOptions.replyTo = replyTo;
+      console.log("Added replyTo:", replyTo);
+    }
 
     const result = await transporter.sendMail(mailOptions);
     console.log("Email sent successfully:", result.messageId);
@@ -90,10 +131,21 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error in send-smtp-email function:", error);
+    console.error("Full error stack:", error.stack);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      responseCode: error.responseCode
+    });
+    
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error.message,
+        errorType: error.name,
+        errorCode: error.code
       }),
       {
         status: 500,
@@ -373,7 +425,7 @@ function generateVoucherEmailHtml(data: any, logoUrl: string): string {
   `;
 }
 
-function generateAdminNotificationHtml(data: any, logoUrl: string, subject: string): string {
+function generateAdminNotificationHtml(data: any, logoUrl: string, subject: string, contactTo: string): string {
   // Escape HTML for safety
   const safeName = data.customerName || '';
   const safeEmail = data.customerEmail || '';

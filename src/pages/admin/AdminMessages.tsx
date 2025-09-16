@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { ContactMessage } from "@/types/trips";
-import { Search, Mail, MailOpen, CheckCircle } from "lucide-react";
+import { Search, Mail, MailOpen, CheckCircle, TestTube, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -19,6 +19,7 @@ export default function AdminMessages() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [testingSmtp, setTestingSmtp] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,6 +80,37 @@ export default function AdminMessages() {
         description: "Nie udało się zaktualizować statusu.",
         variant: "destructive",
       });
+    }
+  };
+
+  const testSmtpConnection = async () => {
+    setTestingSmtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('smtp-test');
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast({
+          title: "Test SMTP zakończony sukcesem! ✅",
+          description: `Połączenie z serwerem SMTP działa prawidłowo. Email testowy został wysłany.`,
+        });
+      } else {
+        toast({
+          title: "Test SMTP nieudany ❌",
+          description: data.error || "Wystąpił błąd podczas testowania SMTP.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('SMTP test error:', error);
+      toast({
+        title: "Błąd testu SMTP ❌",
+        description: `Nie udało się wykonać testu: ${error.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setTestingSmtp(false);
     }
   };
 
@@ -167,7 +199,7 @@ export default function AdminMessages() {
         </Card>
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -177,6 +209,20 @@ export default function AdminMessages() {
             className="pl-8"
           />
         </div>
+        
+        <Button
+          onClick={testSmtpConnection}
+          disabled={testingSmtp}
+          variant="outline"
+          className="flex items-center space-x-2"
+        >
+          {testingSmtp ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <TestTube className="h-4 w-4" />
+          )}
+          <span>{testingSmtp ? "Testowanie..." : "Test SMTP"}</span>
+        </Button>
       </div>
 
       <div className="grid gap-4">
@@ -203,10 +249,20 @@ export default function AdminMessages() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="bg-muted p-4 rounded-lg">
-                  <p className="text-sm whitespace-pre-wrap">{message.message}</p>
-                </div>
+                <div className="space-y-4">
+                  {message.subject && (
+                    <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
+                      <p className="text-sm font-medium text-blue-900">Temat: {message.subject}</p>
+                    </div>
+                  )}
+                  {message.phone && (
+                    <div className="bg-gray-50 p-3 rounded-lg">
+                      <p className="text-sm text-gray-700">📞 Telefon: {message.phone}</p>
+                    </div>
+                  )}
+                  <div className="bg-muted p-4 rounded-lg">
+                    <p className="text-sm whitespace-pre-wrap">{message.message}</p>
+                  </div>
 
                 {message.replied_at && (
                   <p className="text-xs text-muted-foreground">

@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.repair-payments]
 verify_jwt = false
+
+[functions.smtp-test]
+verify_jwt = false
