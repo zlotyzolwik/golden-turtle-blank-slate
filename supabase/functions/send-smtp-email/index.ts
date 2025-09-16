@@ -374,110 +374,51 @@ function generateVoucherEmailHtml(data: any, logoUrl: string): string {
 }
 
 function generateAdminNotificationHtml(data: any, logoUrl: string, subject: string): string {
+  // Escape HTML for safety
+  const safeName = data.customerName || '';
+  const safeEmail = data.customerEmail || '';
+  const safePhone = data.customerPhone || '';
+  const safeSubject = data.contactSubject || subject || '';
+  const safeMessage = (data.contactMessage || data.message || data.notes || '').replace(/\n/g, '<br>');
+  const ip = data.ip || 'N/A';
+  const userAgent = data.userAgent || 'N/A';
+
   return `
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Powiadomienie administratora</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="cid:logo@zz" alt="Złoty Żółwik" style="max-width: 200px;">
+      </div>
+      
+      <h2 style="color: #D6B336; border-bottom: 2px solid #D6B336; padding-bottom: 10px;">
+        Nowa wiadomość kontaktowa
+      </h2>
+      
+      <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p><strong>Imię i nazwisko:</strong> ${safeName}</p>
+        <p><strong>Email:</strong> ${safeEmail}</p>
+        ${safePhone ? `<p><strong>Telefon:</strong> ${safePhone}</p>` : ''}
+        <p><strong>Temat:</strong> ${safeSubject}</p>
         
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%); padding: 30px 20px; text-align: center;">
-          <img src="${logoUrl}" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-            🔔 Powiadomienie
-          </h1>
-          <p style="color: #fecaca; margin: 5px 0 0; font-size: 16px;">Panel Administratora</p>
-        </div>
-
-        <!-- Main Content -->
-        <div style="padding: 40px 30px;">
-          <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
-            <h2 style="color: #dc2626; margin: 0 0 10px; font-size: 20px;">${subject}</h2>
-            <p style="color: #991b1b; margin: 0; font-size: 14px;">
-              Nowa aktywność wymaga uwagi administratora
-            </p>
-          </div>
-
-          <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
-            <h3 style="color: #334155; margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-              Szczegóły:
-            </h3>
-            
-            ${data.customerName ? `
-            <p style="margin: 8px 0; color: #475569;">
-              <strong style="color: #1e293b;">Klient:</strong> ${data.customerName}
-            </p>
-            ` : ''}
-            
-            ${data.customerEmail ? `
-            <p style="margin: 8px 0; color: #475569;">
-              <strong style="color: #1e293b;">Email:</strong> ${data.customerEmail}
-            </p>
-            ` : ''}
-            
-            ${data.voucherCode ? `
-            <p style="margin: 8px 0; color: #475569;">
-              <strong style="color: #1e293b;">Kod vouchera:</strong> ${data.voucherCode}
-            </p>
-            ` : ''}
-            
-            ${data.amount ? `
-            <p style="margin: 8px 0; color: #475569;">
-              <strong style="color: #1e293b;">Kwota:</strong> ${data.amount} ${data.currency || 'PLN'}
-            </p>
-            ` : ''}
-            
-            ${data.tripTitle ? `
-            <p style="margin: 8px 0; color: #475569;">
-              <strong style="color: #1e293b;">Wycieczka:</strong> ${data.tripTitle}
-            </p>
-            ` : ''}
-            
-            ${data.totalPrice ? `
-            <p style="margin: 8px 0; color: #475569;">
-              <strong style="color: #1e293b;">Łączna cena:</strong> ${data.totalPrice} ${data.currency || 'PLN'}
-            </p>
-            ` : ''}
-            
-            ${data.contactMessage || data.message || data.notes ? `
-            <div style="margin: 15px 0;">
-              <strong style="color: #1e293b;">Wiadomość/Uwagi:</strong>
-              <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin-top: 5px; border-left: 3px solid #cbd5e1;">
-                <p style="margin: 0; color: #475569; white-space: pre-line;">${data.contactMessage || data.message || data.notes}</p>
-              </div>
-            </div>
-            ` : ''}
-            
-            <p style="margin: 15px 0 0; color: #6b7280; font-size: 12px;">
-              Data: ${new Date().toLocaleString('pl-PL')}
-            </p>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="background-color: #1e293b; color: #cbd5e1; padding: 30px 20px; text-align: center;">
-          <div style="margin-bottom: 20px;">
-            <h3 style="color: #f1c40f; margin: 0 0 10px; font-size: 20px;">Złoty Żółwik</h3>
-            <p style="margin: 0; color: #94a3b8; font-size: 14px;">Panel Administratora</p>
-          </div>
-          
-          <div style="border-top: 1px solid #374151; padding-top: 20px; font-size: 14px;">
-            <p style="margin: 5px 0; color: #9ca3af;">
-              📧 Email: <a href="mailto:kontakt@zloty-zolwik.pl" style="color: #60a5fa; text-decoration: none;">kontakt@zloty-zolwik.pl</a>
-            </p>
-            <p style="margin: 15px 0 5px; color: #6b7280; font-size: 12px;">
-              © 2025 Złoty Żółwik. Wszystkie prawa zastrzeżone.
-            </p>
-          </div>
+        ${data.voucherCode ? `<p><strong>Kod vouchera:</strong> ${data.voucherCode}</p>` : ''}
+        ${data.amount ? `<p><strong>Kwota:</strong> ${data.amount} ${data.currency || 'PLN'}</p>` : ''}
+        ${data.tripTitle ? `<p><strong>Wycieczka:</strong> ${data.tripTitle}</p>` : ''}
+        ${data.totalPrice ? `<p><strong>Łączna cena:</strong> ${data.totalPrice} ${data.currency || 'PLN'}</p>` : ''}
+      </div>
+      
+      <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+        <h3 style="color: #333; margin-top: 0;">Wiadomość:</h3>
+        <div style="line-height: 1.6; color: #555;">
+          ${safeMessage}
         </div>
       </div>
-    </body>
-    </html>
+      
+      <div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 8px; font-size: 12px; color: #666;">
+        <p><strong>Informacje techniczne:</strong></p>
+        <p>IP: ${ip}</p>
+        <p>User-Agent: ${userAgent}</p>
+        <p>Data: ${new Date().toLocaleString('pl-PL')}</p>
+      </div>
+    </div>
   `;
 }
 

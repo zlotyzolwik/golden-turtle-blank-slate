@@ -12,6 +12,8 @@ const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
+    subject: "",
     message: ""
   });
   const [loading, setLoading] = useState(false);
@@ -25,9 +27,19 @@ const ContactForm = () => {
       // Zapisanie wiadomości w bazie danych
       const { error: dbError } = await supabase
         .from('contact_messages')
-        .insert([formData]);
+        .insert([{
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          phone: formData.phone || null,
+          subject: formData.subject
+        }]);
 
       if (dbError) throw dbError;
+
+      // Get technical information
+      const ip = 'N/A'; // Client-side can't get real IP
+      const userAgent = navigator.userAgent;
 
       // Wysłanie emaila potwierdzającego do klienta
       const { error: customerEmailError } = await supabase.functions.invoke('send-smtp-email', {
@@ -38,6 +50,8 @@ const ContactForm = () => {
           data: {
             customerName: formData.name,
             customerEmail: formData.email,
+            customerPhone: formData.phone,
+            contactSubject: formData.subject,
             contactMessage: formData.message
           }
         }
@@ -48,11 +62,16 @@ const ContactForm = () => {
         body: {
           type: 'admin_notification',
           to: 'kontakt@zloty-zolwik.pl',
-          subject: 'Nowa wiadomość kontaktowa',
+          replyTo: formData.email,
+          subject: `[Kontakt] ${formData.subject || 'Brak tematu'}`,
           data: {
             customerName: formData.name,
             customerEmail: formData.email,
-            contactMessage: formData.message
+            customerPhone: formData.phone,
+            contactSubject: formData.subject,
+            contactMessage: formData.message,
+            ip: ip,
+            userAgent: userAgent
           }
         }
       });
@@ -67,7 +86,7 @@ const ContactForm = () => {
         description: "Dziękujemy za kontakt. Odpowiemy w ciągu 24 godzin.",
       });
 
-      setFormData({ name: "", email: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -122,6 +141,28 @@ const ContactForm = () => {
                     name="email"
                     type="email"
                     value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefon (opcjonalnie)</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Temat</Label>
+                  <Input
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
                     onChange={handleChange}
                     required
                   />
