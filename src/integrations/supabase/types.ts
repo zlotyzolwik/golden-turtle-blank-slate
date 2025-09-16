@@ -248,6 +248,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_reservations_voucher_code"
+            columns: ["voucher_code_used"]
+            isOneToOne: false
+            referencedRelation: "vouchers"
+            referencedColumns: ["code"]
+          },
+          {
             foreignKeyName: "reservations_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
