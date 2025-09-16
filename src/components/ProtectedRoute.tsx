@@ -13,6 +13,15 @@ export const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRout
   const { toast } = useToast();
   const notifiedRef = useRef(false);
 
+  // Debug logging
+  console.log('ProtectedRoute Debug:', {
+    user: user?.email,
+    isAdmin,
+    loading,
+    profile: profile?.role,
+    requireAdmin
+  });
+
   useEffect(() => {
     if (!loading && requireAdmin && user && !isAdmin && !notifiedRef.current) {
       toast({
