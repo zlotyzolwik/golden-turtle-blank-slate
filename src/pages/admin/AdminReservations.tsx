@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Reservation } from "@/types/trips";
-import { Search, Eye, CheckCircle, XCircle } from "lucide-react";
+import { Search, Eye, CheckCircle, XCircle, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Select,
@@ -14,11 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AddReservationForm from "@/components/admin/AddReservationForm";
 
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -51,6 +53,10 @@ export default function AdminReservations() {
       const updateData: any = { status };
       if (paymentStatus) {
         updateData.payment_status = paymentStatus;
+        // Auto-confirm when payment is marked as paid
+        if (paymentStatus === 'paid' && status === 'pending') {
+          updateData.status = 'confirmed';
+        }
       }
 
       const { error } = await supabase
@@ -62,7 +68,11 @@ export default function AdminReservations() {
 
       setReservations(reservations.map(r => 
         r.id === reservationId 
-          ? { ...r, status, ...(paymentStatus && { payment_status: paymentStatus }) }
+          ? { 
+              ...r, 
+              status: updateData.status, 
+              ...(paymentStatus && { payment_status: paymentStatus }) 
+            }
           : r
       ));
 
@@ -85,7 +95,7 @@ export default function AdminReservations() {
     reservation.customer_email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, paymentStatus: string) => {
     const statusConfig = {
       pending: { label: "Oczekująca", className: "bg-yellow-500" },
       confirmed: { label: "Potwierdzona", className: "bg-green-500" },
@@ -97,7 +107,17 @@ export default function AdminReservations() {
       className: "bg-gray-500" 
     };
     
-    return <Badge className={config.className}>{config.label}</Badge>;
+    // Add checkmark for paid reservations
+    const icon = paymentStatus === 'paid' ? <CheckCircle className="w-3 h-3 ml-1" /> : null;
+    
+    return (
+      <Badge className={config.className}>
+        <span className="flex items-center">
+          {config.label}
+          {icon}
+        </span>
+      </Badge>
+    );
   };
 
   const getPaymentStatusBadge = (status: string) => {
@@ -130,7 +150,7 @@ export default function AdminReservations() {
         <p className="text-muted-foreground">Zarządzaj rezerwacjami klientów.</p>
       </div>
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -140,6 +160,10 @@ export default function AdminReservations() {
             className="pl-8"
           />
         </div>
+        <Button onClick={() => setShowAddForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Dodaj rezerwację
+        </Button>
       </div>
 
       <div className="grid gap-6">
@@ -163,7 +187,7 @@ export default function AdminReservations() {
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  {getStatusBadge(reservation.status)}
+                  {getStatusBadge(reservation.status, reservation.payment_status)}
                   {getPaymentStatusBadge(reservation.payment_status)}
                 </div>
               </div>
@@ -251,6 +275,12 @@ export default function AdminReservations() {
           </p>
         </div>
       )}
+
+      <AddReservationForm 
+        open={showAddForm} 
+        onOpenChange={setShowAddForm}
+        onSuccess={fetchReservations}
+      />
     </div>
   );
 }
