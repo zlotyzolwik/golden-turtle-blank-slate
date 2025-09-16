@@ -21,8 +21,17 @@ const TripCard = ({ trip, onViewDetails }: TripCardProps) => {
           className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute top-4 right-4">
-          <Badge variant="secondary" className="bg-background/90 text-foreground">
-            {trip.available_spots} miejsc
+          <Badge 
+            variant={trip.available_spots <= 10 ? "destructive" : "secondary"} 
+            className={`${trip.available_spots <= 10 
+              ? "bg-orange-500 text-white font-bold animate-pulse" 
+              : "bg-background/90 text-foreground"
+            }`}
+          >
+            {trip.available_spots <= 10 
+              ? `OSTATNIE ${trip.available_spots} MIEJSC` 
+              : `${trip.available_spots} miejsc`
+            }
           </Badge>
         </div>
       </div>

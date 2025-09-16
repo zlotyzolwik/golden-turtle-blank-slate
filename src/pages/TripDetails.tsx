@@ -234,8 +234,14 @@ const TripDetails = () => {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>Rezerwacja</span>
-                  <Badge variant="secondary">
-                    {trip.available_spots} miejsc
+                  <Badge 
+                    variant={trip.available_spots <= 10 ? "destructive" : "secondary"}
+                    className={trip.available_spots <= 10 ? "bg-orange-500 text-white font-bold" : ""}
+                  >
+                    {trip.available_spots <= 10 
+                      ? `OSTATNIE ${trip.available_spots} MIEJSC` 
+                      : `${trip.available_spots} miejsc`
+                    }
                   </Badge>
                 </CardTitle>
               </CardHeader>
