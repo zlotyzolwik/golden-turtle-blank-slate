@@ -8,31 +8,38 @@ import { Link } from 'react-router-dom';
 const Regulamin = () => {
   const [pdfError, setPdfError] = useState(false);
 
-  // Placeholder content - will be replaced when PDF is uploaded
   const termsContent = [
     {
       title: "§1 Postanowienia ogólne",
-      content: "Niniejszy regulamin określa zasady organizacji i przeprowadzania wycieczek turystycznych przez firmę Złoty Żółwik."
+      content: "Polish Brokerage Agency Sp. z o.o. z siedzibą w Warszawie przy ul. Królewskiej 16 lok. 11, wpisana do rejestru przedsiębiorców Krajowego Rejestru Sądowego pod numerem KRS 0000846950, REGON 520023985, NIP 5252901936, kapitał zakładowy 15.000,00 zł, działająca pod nazwą handlową 'Złoty Żółwik' organizuje wycieczki krajowe i zagraniczne."
     },
     {
-      title: "§2 Definicje",
-      content: "W niniejszym regulaminie używane są następujące pojęcia: Organizator - firma Złoty Żółwik, Uczestnik - osoba uczestnicząca w wycieczce, Wycieczka - zorganizowana forma wypoczynku."
+      title: "§2 Rezerwacja i płatności",
+      content: "Rezerwacja wycieczki następuje poprzez wniesienie opłaty rezerwacyjnej lub całej kwoty wycieczki. Płatność można dokonać online kartą płatniczą lub przelewem bankowym. Całość płatności musi być uregulowana najpóźniej na 7 dni przed rozpoczęciem wycieczki."
     },
     {
-      title: "§3 Zapisy i rezerwacje",
-      content: "Zapisanie się na wycieczkę następuje poprzez złożenie rezerwacji za pośrednictwem strony internetowej lub bezpośrednio w biurze organizatora."
+      title: "§3 Rezygnacja z wycieczki",
+      content: "W przypadku rezygnacji z wycieczki pobierane są opłaty manipulacyjne: do 30 dni przed wyjazdem - 30% ceny wycieczki, od 15 do 29 dni - 50%, od 8 do 14 dni - 80%, mniej niż 7 dni przed wyjazdem - 100% ceny wycieczki."
     },
     {
-      title: "§4 Płatności",
-      content: "Płatność za wycieczkę może być dokonana online kartą płatniczą, przelewem bankowym lub gotówką w biurze organizatora."
+      title: "§4 Zmiany w programie wycieczki",
+      content: "Organizator zastrzega sobie prawo do wprowadzenia zmian w programie wycieczki z przyczyn niezależnych od niego. W przypadku istotnych zmian uczestnik ma prawo do rezygnacji z wycieczki bez ponoszenia kosztów rezygnacyjnych."
     },
     {
-      title: "§5 Rezygnacja z wycieczki",
-      content: "Uczestnik może zrezygnować z wycieczki z zastrzeżeniem opłat rezygnacyjnych określonych w niniejszym regulaminie."
+      title: "§5 Obowiązki uczestnika wycieczki",
+      content: "Uczestnik zobowiązuje się do przestrzegania regulaminu wycieczki, wykonywania poleceń pilota, punktualnego stawiania się w ustalonych miejscach i terminach oraz ponoszenia odpowiedzialności za ewentualne szkody przez siebie wyrządzone."
     },
     {
-      title: "§6 Odpowiedzialność",
-      content: "Organizator ponosi odpowiedzialność za należyte wykonanie usług turystycznych zgodnie z zawartą umową."
+      title: "§6 Odpowiedzialność koordynatora wycieczki",
+      content: "Organizator odpowiada za należyte wykonanie usług objętych programem wycieczki. Odpowiedzialność organizatora ograniczona jest do wysokości ceny wycieczki, z wyłączeniem szkód na osobie."
+    },
+    {
+      title: "§7 Ochrona danych osobowych (RODO)",
+      content: "Dane osobowe uczestników wycieczek są przetwarzane zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO). Szczegółowe informacje o przetwarzaniu danych osobowych dostępne są w polityce prywatności."
+    },
+    {
+      title: "§8 Postanowienia końcowe",
+      content: "W sprawach nieuregulowanych niniejszym regulaminem stosuje się przepisy Kodeksu Cywilnego oraz ustawy o usługach turystycznych. Ewentualne spory będą rozstrzygane przez sąd właściwy dla siedziby organizatora."
     }
   ];
 
@@ -78,14 +85,16 @@ const Regulamin = () => {
             </CardHeader>
             <CardContent>
               <div className="bg-muted/30 border border-dashed border-border rounded-lg p-8 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <FileText className="h-12 w-12 text-primary mx-auto mb-4" />
                 <p className="text-muted-foreground mb-4">
-                  Plik PDF z regulaminem zostanie tutaj wyświetlony po przesłaniu przez administratora.
+                  Pełna treść regulaminu dostępna w dokumencie PDF do pobrania.
                 </p>
-                <Button variant="outline" disabled>
-                  <Download className="h-4 w-4 mr-2" />
-                  Pobierz regulamin (PDF)
-                </Button>
+                <a href="/regulamin.pdf" download="Regulamin_Zloty_Zolwik.pdf">
+                  <Button variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    Pobierz regulamin (PDF)
+                  </Button>
+                </a>
               </div>
             </CardContent>
           </Card>
@@ -127,7 +136,7 @@ const Regulamin = () => {
                 Masz pytania dotyczące regulaminu?
               </h3>
               <p className="text-muted-foreground mb-4">
-                Skontaktuj się z nami, aby uzyskać szczegółowe informacje o warunkach uczestnictwa w naszych wycieczkach.
+                Skontaktuj się z Polish Brokerage Agency Sp. z o.o. (Złoty Żółwik), aby uzyskać szczegółowe informacje o warunkach uczestnictwa w naszych wycieczkach.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link to="/#contact">
