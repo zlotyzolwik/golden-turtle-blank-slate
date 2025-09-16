@@ -6,7 +6,7 @@ const Hero = () => {
       <div className="absolute inset-0 bg-black/40" />
       
       <div className="relative z-10 text-center text-white space-y-6 px-4 max-w-4xl mx-auto">
-        <h1 id="hero-heading" className="text-5xl md:text-7xl font-bold leading-tight">Podróżuj ze Złotym Żółwikiem</h1>
+        <h1 id="hero-heading" className="text-5xl md:text-7xl font-bold leading-tight text-yellow-500">Podróżuj ze Złotym Żółwikiem</h1>
         <p className="text-xl md:text-2xl max-w-2xl mx-auto">Twój koordynator wycieczek</p>
       </div>
     </section>;
