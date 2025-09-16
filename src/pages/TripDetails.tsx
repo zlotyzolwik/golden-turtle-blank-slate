@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router-dom";
 import { createReservationSecure, ReservationData } from "@/utils/reservationUtils";
 import { createStripePayment } from "@/utils/stripeUtils";
+import SEOHead from "@/components/SEOHead";
 
 const getPlacesText = (count: number) => {
   if (count === 0) return "WYCIECZKA WYKUPIONA - BRAK MIEJSC";
@@ -139,61 +140,104 @@ const TripDetails = () => {
 
   const itineraryEntries = Object.entries(trip.itinerary || {});
 
+  const tripStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "TouristTrip",
+    "name": trip.title,
+    "description": trip.detailed_description,
+    "image": trip.featured_image,
+    "offers": {
+      "@type": "Offer",
+      "price": trip.price,
+      "priceCurrency": trip.currency,
+      "availability": trip.available_spots > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "validFrom": new Date().toISOString(),
+      "validThrough": new Date(trip.departure_date).toISOString()
+    },
+    "tourBookingPage": `https://zloty-zolwik.pl/trip/${trip.id}`,
+    "startDate": trip.departure_date,
+    "endDate": trip.return_date,
+    "itinerary": {
+      "@type": "ItemList",
+      "name": "Program wycieczki",
+      "description": trip.detailed_description
+    }
+  };
+
   return (
     <div className="min-h-screen">
+      <SEOHead
+        title={`${trip.title} - Wycieczka do ${trip.destination} | Złoty Żółwik`}
+        description={`${trip.detailed_description?.substring(0, 150)}... Cena: ${trip.price} ${trip.currency}. Dostępne miejsca: ${trip.available_spots}. Rezerwuj teraz!`}
+        keywords={`wycieczka ${trip.destination}, ${trip.title}, wyjazd do ${trip.destination}, turystyka`}
+        ogImage={trip.featured_image}
+        ogType="product"
+        canonicalUrl={`https://zloty-zolwik.pl/trip/${trip.id}`}
+        structuredData={tripStructuredData}
+      />
+
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">WycieczkiPL</h1>
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate('/')}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Powrót
-            </Button>
-            {user && (
-              <Button variant="outline" onClick={() => navigate('/admin')}>
-                Panel Admin
+      <header>
+        <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b" role="navigation" aria-label="Nawigacja szczegółów wycieczki">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div className="text-2xl font-bold text-primary">Złoty Żółwik</div>
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" onClick={() => navigate('/')} aria-label="Powrót do strony głównej">
+                <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+                Powrót
               </Button>
-            )}
+              {user && (
+                <Button variant="outline" onClick={() => navigate('/admin')} aria-label="Przejdź do panelu administracyjnego">
+                  Panel Admin
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </header>
 
       {/* Hero Section */}
-      <section className="relative h-96 mt-16">
+      <section className="relative h-96 mt-16" aria-labelledby="trip-title">
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url('${trip.featured_image}')` }}
+          role="img"
+          aria-label={`Zdjęcie reprezentujące wycieczkę ${trip.title}`}
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
           <div className="text-white">
-            <h1 className="text-5xl font-bold mb-4">{trip.title}</h1>
+            <h1 id="trip-title" className="text-5xl font-bold mb-4">{trip.title}</h1>
             <div className="flex items-center text-xl mb-2">
-              <MapPin className="h-5 w-5 mr-2" />
-              {trip.destination}
+              <MapPin className="h-5 w-5 mr-2" aria-hidden="true" />
+              <span aria-label={`Cel podróży: ${trip.destination}`}>{trip.destination}</span>
             </div>
             <div className="flex items-center text-lg">
-              <Calendar className="h-5 w-5 mr-2" />
-              {format(new Date(trip.departure_date), "dd MMM", { locale: pl })} - {" "}
-              {format(new Date(trip.return_date), "dd MMM yyyy", { locale: pl })}
+              <Calendar className="h-5 w-5 mr-2" aria-hidden="true" />
+              <time dateTime={trip.departure_date} aria-label={`Data wyjazdu: ${format(new Date(trip.departure_date), "dd MMM", { locale: pl })}`}>
+                {format(new Date(trip.departure_date), "dd MMM", { locale: pl })}
+              </time>
+              {" - "}
+              <time dateTime={trip.return_date} aria-label={`Data powrotu: ${format(new Date(trip.return_date), "dd MMM yyyy", { locale: pl })}`}>
+                {format(new Date(trip.return_date), "dd MMM yyyy", { locale: pl })}
+              </time>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12" role="main">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Left Column - Details */}
-          <div className="lg:col-span-2 space-y-8">
+          <article className="lg:col-span-2 space-y-8" itemScope itemType="https://schema.org/TouristTrip">
             {/* Description */}
             <Card>
               <CardHeader>
                 <CardTitle>Opis wycieczki</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed" itemProp="description">
                   {trip.detailed_description}
                 </p>
               </CardContent>
@@ -225,18 +269,20 @@ const TripDetails = () => {
                       <img
                         key={index}
                         src={image}
-                        alt={`${trip.title} - zdjęcie ${index + 1}`}
+                        alt={`${trip.title} - zdjęcie ${index + 1} przedstawiające ${trip.destination}`}
                         className="w-full h-32 object-cover rounded-lg"
+                        loading="lazy"
+                        itemProp="image"
                       />
                     ))}
                   </div>
                 </CardContent>
               </Card>
             )}
-          </div>
+          </article>
 
           {/* Right Column - Booking */}
-          <div className="space-y-6">
+          <aside className="space-y-6" role="complementary" aria-label="Informacje o rezerwacji i kontakcie">
             {/* Price & Booking Card */}
             <Card className="sticky top-24">
               <CardHeader>
@@ -434,9 +480,9 @@ const TripDetails = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </aside>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

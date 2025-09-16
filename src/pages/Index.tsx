@@ -10,6 +10,7 @@ import ContactForm from "@/components/ContactForm";
 import { MapSection } from "@/components/MapSection";
 import { Trip } from "@/types/trips";
 import Brand from "@/components/Brand";
+import SEOHead from "@/components/SEOHead";
 
 const Index = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -19,44 +20,74 @@ const Index = () => {
     navigate(`/trip/${trip.id}`);
   };
 
+  const homeStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "TravelAgency",
+    "name": "Złoty Żółwik",
+    "description": "Organizator wycieczek po Polsce i Europie od 2008 roku",
+    "url": "https://zloty-zolwik.pl",
+    "telephone": "514176996",
+    "email": "kontakt@zloty-zolwik.pl",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "PL",
+      "addressLocality": "Polska"
+    },
+    "sameAs": [
+      "https://facebook.com/zloty-zolwik",
+      "https://instagram.com/zloty-zolwik"
+    ],
+    "offers": {
+      "@type": "Offer",
+      "category": "Wycieczki",
+      "description": "Wycieczki po Polsce i Europie"
+    }
+  };
+
   return (
     <div className="min-h-screen">
+      <SEOHead
+        structuredData={homeStructuredData}
+        canonicalUrl="https://zloty-zolwik.pl"
+      />
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Brand />
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" onClick={() => navigate('/')}>Strona główna</Button>
-            <Button variant="ghost" onClick={() => navigate('/vouchers')}>Vouchery</Button>
-            {user ? (
-              <div className="flex items-center space-x-2">
-                {isAdmin && (
-                  <Button variant="outline" onClick={() => navigate('/admin')}>
-                    Panel Admin
+      <header>
+        <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b" role="navigation" aria-label="Główna nawigacja">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <Brand />
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" onClick={() => navigate('/')} aria-label="Przejdź do strony głównej">Strona główna</Button>
+              <Button variant="ghost" onClick={() => navigate('/vouchers')} aria-label="Zobacz vouchery">Vouchery</Button>
+              {user ? (
+                <div className="flex items-center space-x-2">
+                  {isAdmin && (
+                    <Button variant="outline" onClick={() => navigate('/admin')} aria-label="Przejdź do panelu administracyjnego">
+                      Panel Admin
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => signOut()} aria-label="Wyloguj się">
+                    Wyloguj
                   </Button>
-                )}
-                <Button variant="outline" onClick={() => signOut()}>
-                  Wyloguj
+                </div>
+              ) : (
+                <Button onClick={() => navigate('/auth')} aria-label="Zaloguj się">
+                  Zaloguj się
                 </Button>
-              </div>
-            ) : (
-              <Button onClick={() => navigate('/auth')}>
-                Zaloguj się
-              </Button>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </header>
 
       {/* Main Content */}
-      <main>
+      <main role="main">
         <Hero />
         <AboutSection />
         
-        <section id="trips-section" className="py-20 bg-background">
+        <section id="trips-section" className="py-20 bg-background" aria-labelledby="trips-heading">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold mb-6">Nasze Wycieczki</h2>
+              <h2 id="trips-heading" className="text-4xl font-bold mb-6">Nasze Wycieczki</h2>
               <p className="text-xl text-muted-foreground">
                 Odkryj naszą bogatą ofertę wycieczek do najpiękniejszych miejsc w Polsce i Europie. Każda wycieczka to niezapomniane wspomnienia i profesjonalna opieka koordynatora
               </p>
