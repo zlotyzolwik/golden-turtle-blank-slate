@@ -7,7 +7,7 @@ const Hero = () => {
       
       <div className="relative z-10 text-center text-white space-y-6 px-4 max-w-4xl mx-auto">
         <h1 id="hero-heading" className="text-5xl md:text-7xl font-bold leading-tight text-yellow-500">Podróżuj ze Złotym Żółwikiem</h1>
-        <p className="text-xl md:text-2xl max-w-2xl mx-auto">Twój koordynator wycieczek</p>
+        <p className="text-xl md:text-2xl max-w-2xl mx-auto">bo każdy dzień, to nowa przygoda :)</p>
       </div>
     </section>;
 };
