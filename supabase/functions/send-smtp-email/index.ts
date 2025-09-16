@@ -55,6 +55,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     const logoUrl = "https://xgvvcovmjqcpfmghawdy.supabase.co/storage/v1/object/public/images/logo-zloty-zolwik.png";
 
+    // Logo attachment for emails
+    const logoAttachment = [{
+      filename: 'logo.png',
+      path: logoUrl,
+      cid: 'logo@zz'
+    }];
+
     // Generate HTML content based on email type
     let htmlContent = "";
     
@@ -73,6 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
       to: to,
       subject: subject,
       html: htmlContent,
+      attachments: logoAttachment,
     };
 
     const result = await transporter.sendMail(mailOptions);
@@ -104,81 +112,48 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 function generateContactEmailHtml(data: any, logoUrl: string): string {
+  const safeName = data.customerName || '';
+  const safeSubject = data.contactSubject || '';
+  const safeMessage = (data.contactMessage || '').replace(/\n/g, '<br>');
+  const referenceNumber = Date.now();
+
   return `
-    <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Potwierdzenie wiadomości</title>
-    </head>
-    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; line-height: 1.6;">
-      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-        
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); padding: 30px 20px; text-align: center;">
-          <img src="${logoUrl}" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-            Złoty Żółwik
-          </h1>
-          <p style="color: #e0f2fe; margin: 5px 0 0; font-size: 16px;">Twoje przygody zaczynają się tutaj</p>
-        </div>
-
-        <!-- Main Content -->
-        <div style="padding: 40px 30px;">
-          <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
-            <h2 style="color: #0c4a6e; margin: 0 0 10px; font-size: 24px;">Dziękujemy za wiadomość!</h2>
-            <p style="color: #075985; margin: 0; font-size: 16px;">
-              Otrzymaliśmy Twoją wiadomość i odpowiemy tak szybko, jak to możliwe.
-            </p>
-          </div>
-
-          <div style="background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
-            <h3 style="color: #334155; margin: 0 0 15px; font-size: 18px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">
-              Szczegóły wiadomości:
-            </h3>
-            <div style="space-y: 10px;">
-              <p style="margin: 8px 0; color: #475569;">
-                <strong style="color: #1e293b;">Imię:</strong> ${data.customerName}
-              </p>
-              <p style="margin: 8px 0; color: #475569;">
-                <strong style="color: #1e293b;">Email:</strong> ${data.customerEmail}
-              </p>
-              <div style="margin: 15px 0;">
-                <strong style="color: #1e293b;">Wiadomość:</strong>
-                <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin-top: 5px; border-left: 3px solid #cbd5e1;">
-                  <p style="margin: 0; color: #475569; white-space: pre-line;">${data.contactMessage}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style="text-align: center; margin: 30px 0;">
-            <p style="color: #64748b; font-size: 14px; margin: 0;">
-              W międzyczasie możesz sprawdzić nasze najnowsze wycieczki na stronie internetowej.
-            </p>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="background-color: #1e293b; color: #cbd5e1; padding: 30px 20px; text-align: center;">
-          <div style="margin-bottom: 20px;">
-            <h3 style="color: #f1c40f; margin: 0 0 10px; font-size: 20px;">Złoty Żółwik</h3>
-            <p style="margin: 0; color: #94a3b8; font-size: 14px;">Twoje przygody zaczynają się tutaj</p>
-          </div>
-          
-          <div style="border-top: 1px solid #374151; padding-top: 20px; font-size: 14px;">
-            <p style="margin: 5px 0; color: #9ca3af;">
-              📧 Email: <a href="mailto:kontakt@zloty-zolwik.pl" style="color: #60a5fa; text-decoration: none;">kontakt@zloty-zolwik.pl</a>
-            </p>
-            <p style="margin: 15px 0 5px; color: #6b7280; font-size: 12px;">
-              © 2025 Złoty Żółwik. Wszystkie prawa zastrzeżone.
-            </p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <img src="cid:logo@zz" alt="Złoty Żółwik" style="max-width: 200px;">
+      </div>
+      
+      <h2 style="color: #D6B336; border-bottom: 2px solid #D6B336; padding-bottom: 10px;">
+        Potwierdzenie złożenia zapytania
+      </h2>
+      
+      <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <p><strong>Dzień dobry ${safeName},</strong></p>
+        <p>Dziękujemy za kontakt z Złotym Żółwikiem!</p>
+        <p>Otrzymaliśmy Twoją wiadomość i odpowiemy najszybciej jak to możliwe.</p>
+      </div>
+      
+      <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+        <h3 style="color: #333; margin-top: 0;">Szczegóły Twojego zapytania:</h3>
+        <div style="line-height: 1.6; color: #555;">
+          <p><strong>Temat:</strong> ${safeSubject}</p>
+          <p><strong>Wiadomość:</strong></p>
+          <div style="background: #f8f8f8; padding: 15px; border-radius: 5px; margin: 10px 0;">
+            ${safeMessage}
           </div>
         </div>
       </div>
-    </body>
-    </html>
+      
+      <div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 8px; font-size: 12px; color: #666;">
+        <p><strong>Informacje:</strong></p>
+        <p>Data złożenia: ${new Date().toLocaleString('pl-PL')}</p>
+        <p>Numer referencyjny: ${referenceNumber}</p>
+      </div>
+      
+      <div style="margin-top: 20px; text-align: center; color: #666;">
+        <p>Z poważaniem,<br>Zespół Złoty Żółwik</p>
+      </div>
+    </div>
   `;
 }
 
