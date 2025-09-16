@@ -8,40 +8,6 @@ import { Link } from 'react-router-dom';
 const Regulamin = () => {
   const [pdfError, setPdfError] = useState(false);
 
-  const termsContent = [
-    {
-      title: "§1 Postanowienia ogólne",
-      content: "Polish Brokerage Agency Sp. z o.o. z siedzibą w Warszawie przy ul. Królewskiej 16 lok. 11, wpisana do rejestru przedsiębiorców Krajowego Rejestru Sądowego pod numerem KRS 0000846950, REGON 520023985, NIP 5252901936, kapitał zakładowy 15.000,00 zł, działająca pod nazwą handlową 'Złoty Żółwik' organizuje wycieczki krajowe i zagraniczne."
-    },
-    {
-      title: "§2 Rezerwacja i płatności",
-      content: "Rezerwacja wycieczki następuje poprzez wniesienie opłaty rezerwacyjnej lub całej kwoty wycieczki. Płatność można dokonać online kartą płatniczą lub przelewem bankowym. Całość płatności musi być uregulowana najpóźniej na 7 dni przed rozpoczęciem wycieczki."
-    },
-    {
-      title: "§3 Rezygnacja z wycieczki",
-      content: "W przypadku rezygnacji z wycieczki pobierane są opłaty manipulacyjne: do 30 dni przed wyjazdem - 30% ceny wycieczki, od 15 do 29 dni - 50%, od 8 do 14 dni - 80%, mniej niż 7 dni przed wyjazdem - 100% ceny wycieczki."
-    },
-    {
-      title: "§4 Zmiany w programie wycieczki",
-      content: "Organizator zastrzega sobie prawo do wprowadzenia zmian w programie wycieczki z przyczyn niezależnych od niego. W przypadku istotnych zmian uczestnik ma prawo do rezygnacji z wycieczki bez ponoszenia kosztów rezygnacyjnych."
-    },
-    {
-      title: "§5 Obowiązki uczestnika wycieczki",
-      content: "Uczestnik zobowiązuje się do przestrzegania regulaminu wycieczki, wykonywania poleceń pilota, punktualnego stawiania się w ustalonych miejscach i terminach oraz ponoszenia odpowiedzialności za ewentualne szkody przez siebie wyrządzone."
-    },
-    {
-      title: "§6 Odpowiedzialność koordynatora wycieczki",
-      content: "Organizator odpowiada za należyte wykonanie usług objętych programem wycieczki. Odpowiedzialność organizatora ograniczona jest do wysokości ceny wycieczki, z wyłączeniem szkód na osobie."
-    },
-    {
-      title: "§7 Ochrona danych osobowych (RODO)",
-      content: "Dane osobowe uczestników wycieczek są przetwarzane zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO). Szczegółowe informacje o przetwarzaniu danych osobowych dostępne są w polityce prywatności."
-    },
-    {
-      title: "§8 Postanowienia końcowe",
-      content: "W sprawach nieuregulowanych niniejszym regulaminem stosuje się przepisy Kodeksu Cywilnego oraz ustawy o usługach turystycznych. Ewentualne spory będą rozstrzygane przez sąd właściwy dla siedziby organizatora."
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,35 +65,6 @@ const Regulamin = () => {
             </CardContent>
           </Card>
 
-          {/* Terms Content - Fallback */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground mb-4">
-              Główne postanowienia regulaminu
-            </h2>
-            
-            {termsContent.map((section, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{section.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {section.content}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">
-                  <strong>Uwaga:</strong> Powyższy tekst stanowi skrócone przedstawienie głównych punktów regulaminu. 
-                  Pełna treść regulaminu znajduje się w dokumencie PDF dostępnym do pobrania powyżej. 
-                  W przypadku rozbieżności między tekstem a dokumentem PDF, obowiązuje treść dokumentu PDF.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
 
           {/* Contact Information */}
           <Card className="mt-8 border-accent/20 bg-accent/5">
