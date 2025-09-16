@@ -2,7 +2,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/Hero";
-import AboutSection from "@/components/AboutSection";
+
 import TripGrid from "@/components/TripGrid";
 import Gallery from "@/components/Gallery";
 import FAQ from "@/components/FAQ";
@@ -82,7 +82,6 @@ const Index = () => {
       {/* Main Content */}
       <main role="main">
         <Hero />
-        <AboutSection />
         
         <section id="trips-section" className="py-20 bg-background" aria-labelledby="trips-heading">
           <div className="container mx-auto px-4">
@@ -115,7 +114,7 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Szybkie linki</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><a href="#about" className="hover:opacity-100">O nas</a></li>
+                
                 <li><a href="#trips" className="hover:opacity-100">Oferta</a></li>
                 <li><a href="#contact" className="hover:opacity-100">Kontakt</a></li>
                 <li><Link to="/regulamin" className="hover:opacity-100">Regulamin</Link></li>
