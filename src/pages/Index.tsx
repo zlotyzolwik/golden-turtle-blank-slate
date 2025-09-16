@@ -100,7 +100,7 @@ const Index = () => {
               
               
             </div>
-            <div>
+            <div className="mx-0">
               <h4 className="font-semibold mb-4">Kontakt</h4>
               <ul className="space-y-2 text-sm opacity-80">
                 <li>514176996</li>
