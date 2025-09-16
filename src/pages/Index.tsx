@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/Hero";
@@ -84,10 +84,10 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-4">Szybkie linki</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li><a href="#" className="hover:opacity-100">O nas</a></li>
-                <li><a href="#" className="hover:opacity-100">Oferta</a></li>
-                <li><a href="#" className="hover:opacity-100">Kontakt</a></li>
-                <li><a href="#" className="hover:opacity-100">Regulamin</a></li>
+                <li><a href="#about" className="hover:opacity-100">O nas</a></li>
+                <li><a href="#trips" className="hover:opacity-100">Oferta</a></li>
+                <li><a href="#contact" className="hover:opacity-100">Kontakt</a></li>
+                <li><Link to="/regulamin" className="hover:opacity-100">Regulamin</Link></li>
               </ul>
             </div>
             <div>
@@ -107,7 +107,13 @@ const Index = () => {
             </div>
           </div>
           <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-sm opacity-80">
-            <p>&copy; 2024 Złoty Żółwik. Wszystkie prawa zastrzeżone.</p>
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+              <p>&copy; 2024 Złoty Żółwik. Wszystkie prawa zastrzeżone.</p>
+              <div className="flex gap-4">
+                <Link to="/regulamin" className="hover:opacity-100">Regulamin</Link>
+                <Link to="/polityka-prywatnosci" className="hover:opacity-100">Polityka prywatności</Link>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

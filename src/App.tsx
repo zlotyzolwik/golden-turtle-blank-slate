@@ -10,6 +10,8 @@ import Vouchers from "./pages/Vouchers";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancel from "./pages/PaymentCancel";
 import NotFound from "./pages/NotFound";
+import Regulamin from "./pages/Regulamin";
+import PolitykaPrywatnosci from "./pages/PolitykaPrywatnosci";
 import Dashboard from "./pages/admin/Dashboard";
 import AdminTrips from "./pages/admin/AdminTrips";
 import AdminTripNew from "./pages/admin/AdminTripNew";
@@ -20,6 +22,7 @@ import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminReports from "./pages/admin/AdminReports";
 import { AdminLayout } from "./layouts/AdminLayout";
+import { CookieBanner } from "./components/CookieBanner";
 
 const queryClient = new QueryClient();
 
@@ -29,11 +32,14 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <CookieBanner />
         <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/trip/:id" element={<TripDetails />} />
             <Route path="/vouchers" element={<Vouchers />} />
+            <Route path="/regulamin" element={<Regulamin />} />
+            <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
           

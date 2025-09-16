@@ -10,12 +10,15 @@ import { createStripePayment } from "@/utils/stripeUtils";
 import { useToast } from "@/hooks/use-toast";
 import { Gift, Send } from "lucide-react";
 import Brand from "@/components/Brand";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 
 const Vouchers = () => {
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
     recipientEmail: "",
@@ -258,10 +261,40 @@ const Vouchers = () => {
                     </ul>
                   </div>
 
+                  <div className="flex items-start space-x-2">
+                    <Checkbox 
+                      id="terms-voucher" 
+                      checked={termsAccepted}
+                      onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                      required
+                    />
+                    <Label 
+                      htmlFor="terms-voucher" 
+                      className="text-sm leading-tight cursor-pointer"
+                    >
+                      Akceptuję{" "}
+                      <Link 
+                        to="/regulamin" 
+                        target="_blank"
+                        className="text-primary hover:underline"
+                      >
+                        regulamin wycieczek
+                      </Link>
+                      {" "}i{" "}
+                      <Link 
+                        to="/polityka-prywatnosci" 
+                        target="_blank"
+                        className="text-primary hover:underline"
+                      >
+                        politykę prywatności
+                      </Link>
+                    </Label>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full text-lg py-6" 
-                    disabled={loading}
+                    disabled={loading || !termsAccepted}
                   >
                     {loading ? "Tworzenie vouchera..." : `Kup Voucher za ${formData.amount || '0'} PLN`}
                   </Button>

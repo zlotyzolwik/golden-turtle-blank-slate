@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { MapPin, Calendar, Users, Star, ArrowLeft, Phone, Mail } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 import { createReservationSecure, ReservationData } from "@/utils/reservationUtils";
 import { createStripePayment } from "@/utils/stripeUtils";
 
@@ -33,6 +35,7 @@ const TripDetails = () => {
     number_of_people: 1,
     notes: ""
   });
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -349,7 +352,41 @@ const TripDetails = () => {
                         </div>
                       </div>
 
-                      <Button type="submit" className="w-full">
+                      <div className="flex items-start space-x-2">
+                        <Checkbox 
+                          id="terms" 
+                          checked={termsAccepted}
+                          onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+                          required
+                        />
+                        <Label 
+                          htmlFor="terms" 
+                          className="text-sm leading-tight cursor-pointer"
+                        >
+                          Akceptuję{" "}
+                          <Link 
+                            to="/regulamin" 
+                            target="_blank"
+                            className="text-primary hover:underline"
+                          >
+                            regulamin wycieczek
+                          </Link>
+                          {" "}i{" "}
+                          <Link 
+                            to="/polityka-prywatnosci" 
+                            target="_blank"
+                            className="text-primary hover:underline"
+                          >
+                            politykę prywatności
+                          </Link>
+                        </Label>
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        className="w-full"
+                        disabled={!termsAccepted}
+                      >
                         Przejdź do płatności
                       </Button>
                     </form>
