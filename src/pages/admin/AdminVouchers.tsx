@@ -157,6 +157,33 @@ export default function AdminVouchers() {
     }
   };
 
+  const activateVoucher = async (voucherId: string) => {
+    try {
+      const { error } = await supabase
+        .from('vouchers')
+        .update({ status: 'active' })
+        .eq('id', voucherId);
+
+      if (error) throw error;
+
+      setVouchers(vouchers.map(v => 
+        v.id === voucherId ? { ...v, status: 'active' } : v
+      ));
+
+      toast({
+        title: "Sukces",
+        description: "Voucher został aktywowany.",
+      });
+    } catch (error) {
+      console.error('Error activating voucher:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się aktywować vouchera.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredVouchers = vouchers.filter(voucher =>
     voucher.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (voucher.recipient_email && voucher.recipient_email.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -354,16 +381,30 @@ export default function AdminVouchers() {
                 )}
               </div>
 
-              {voucher.status === 'active' && !voucher.used_at && (
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  className="w-full mt-4"
-                  onClick={() => deactivateVoucher(voucher.id)}
-                >
-                  Dezaktywuj
-                </Button>
-              )}
+              <div className="mt-4 space-y-2">
+                {voucher.status === 'active' && !voucher.used_at && (
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => deactivateVoucher(voucher.id)}
+                  >
+                    Dezaktywuj
+                  </Button>
+                )}
+                
+                {voucher.status === 'inactive' && !voucher.used_at && 
+                 (!voucher.expires_at || new Date(voucher.expires_at) > new Date()) && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => activateVoucher(voucher.id)}
+                  >
+                    Aktywuj
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
