@@ -134,7 +134,7 @@ function generateContactEmailHtml(data: any, logoUrl: string): string {
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="cid:logo@zz" alt="Złoty Żółwik" style="max-width: 200px;">
+        <img src="cid:logo@zz" alt="Złoty Żółwik" style="max-width: 200px;" onerror="this.style.display='none'">
       </div>
       
       <h2 style="color: #D6B336; border-bottom: 2px solid #D6B336; padding-bottom: 10px;">
