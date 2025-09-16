@@ -7,7 +7,8 @@ import {
   MessageSquare, 
   BarChart3,
   Images,
-  LogOut 
+  LogOut,
+  Home
 } from "lucide-react";
 import {
   Sidebar,
@@ -18,6 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -69,6 +71,22 @@ export function AdminSidebar() {
           <SidebarGroupLabel>Panel Administratora</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
+                        : "hover:bg-sidebar-accent/50"
+                    }
+                  >
+                    <Home className="mr-2 h-4 w-4" />
+                    <span>Strona główna</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarSeparator className="my-2" />
               {adminMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
