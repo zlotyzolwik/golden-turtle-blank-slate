@@ -26,6 +26,27 @@ export default function AdminReservations() {
 
   useEffect(() => {
     fetchReservations();
+
+    // Set up real-time subscription for reservations
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'reservations'
+        },
+        (payload) => {
+          console.log('Reservation updated in real-time:', payload);
+          fetchReservations(); // Refresh the list
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchReservations = async () => {
@@ -151,7 +172,7 @@ export default function AdminReservations() {
         <p className="text-muted-foreground">Zarządzaj rezerwacjami klientów.</p>
       </div>
 
-      <PaymentRepairTool />
+      <PaymentRepairTool onComplete={fetchReservations} />
 
       <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">

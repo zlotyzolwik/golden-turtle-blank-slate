@@ -23,7 +23,11 @@ interface RepairResponse {
   error?: string;
 }
 
-export const PaymentRepairTool = () => {
+interface PaymentRepairToolProps {
+  onComplete?: () => void;
+}
+
+export const PaymentRepairTool = ({ onComplete }: PaymentRepairToolProps) => {
   const [isRepairing, setIsRepairing] = useState(false);
   const [repairResults, setRepairResults] = useState<RepairResponse | null>(null);
   const { toast } = useToast();
@@ -46,6 +50,7 @@ export const PaymentRepairTool = () => {
           title: "Naprawiono płatności",
           description: `Naprawiono ${data.repairedCount} z ${data.totalChecked} płatności`,
         });
+        onComplete?.(); // Refresh the reservations list
       } else {
         toast({
           title: "Błąd naprawy",
