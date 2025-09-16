@@ -61,8 +61,7 @@ const TripCard = ({ trip, onViewDetails }: TripCardProps) => {
           <div className="flex items-center">
             <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
             <span>
-              {format(new Date(trip.departure_date), "dd MMM", { locale: pl })} - {" "}
-              {format(new Date(trip.return_date), "dd MMM yyyy", { locale: pl })}
+              {format(new Date(trip.departure_date), "dd MMM yyyy", { locale: pl })}
             </span>
           </div>
           <div className="flex items-center">
