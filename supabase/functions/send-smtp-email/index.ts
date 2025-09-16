@@ -6,10 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Global constants
+const LOGO_URL = "https://xgvvcovmjqcpfmghawdy.supabase.co/storage/v1/object/public/images/logo-zloty-zolwik.png";
+
 interface EmailRequest {
   type: 'contact' | 'reservation' | 'voucher' | 'admin_notification';
   to: string;
   subject: string;
+  replyTo?: string;
   data: {
     customerName?: string;
     customerEmail?: string;
@@ -37,16 +41,27 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { type, to, subject, data }: EmailRequest = await req.json();
+    const { type, to, subject, replyTo, data }: EmailRequest = await req.json();
+    
+    console.log(`Processing ${type} email to ${to}`);
+
+    // Validate SMTP environment variables
+    const smtpHost = Deno.env.get("SMTP_HOST");
+    const smtpUser = Deno.env.get("SMTP_USER");
+    const smtpPass = Deno.env.get("SMTP_PASS");
+    
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      throw new Error("Missing required SMTP configuration");
+    }
 
     // Create nodemailer transporter with SMTP configuration
     const transporter = createTransport({
-      host: Deno.env.get("SMTP_HOST"),
+      host: smtpHost,
       port: parseInt(Deno.env.get("SMTP_PORT") || "587"),
       secure: false, // true for 465, false for other ports
       auth: {
-        user: Deno.env.get("SMTP_USER"),
-        pass: Deno.env.get("SMTP_PASS"),
+        user: smtpUser,
+        pass: smtpPass,
       },
       tls: {
         ciphers: 'SSLv3'
@@ -56,10 +71,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Get logo attachment with error handling
     let logoAttachment: any[] = [];
     try {
-      const logoUrl = "https://xgvvcovmjqcpfmghawdy.supabase.co/storage/v1/object/public/images/logo-zloty-zolwik.png";
-      console.log('Attempting to fetch logo from:', logoUrl);
+      console.log('Attempting to fetch logo from:', LOGO_URL);
       
-      const logoResponse = await fetch(logoUrl);
+      const logoResponse = await fetch(LOGO_URL);
       if (logoResponse.ok) {
         const logoBuffer = await logoResponse.arrayBuffer();
         logoAttachment = [{
@@ -69,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
         }];
         console.log('Logo attachment created successfully');
       } else {
-        console.warn('Logo not found, sending email without logo attachment');
+        console.warn(`Logo not found (${logoResponse.status}), sending email without logo attachment`);
       }
     } catch (error) {
       console.warn('Failed to load logo attachment:', error);
@@ -80,19 +94,22 @@ const handler = async (req: Request): Promise<Response> => {
     let htmlContent = "";
     
     if (type === 'contact') {
-      htmlContent = generateContactEmailHtml(data, logoUrl);
+      htmlContent = generateContactEmailHtml(data);
     } else if (type === 'reservation') {
-      htmlContent = generateReservationEmailHtml(data, logoUrl);
+      htmlContent = generateReservationEmailHtml(data);
     } else if (type === 'voucher') {
-      htmlContent = generateVoucherEmailHtml(data, logoUrl);
+      htmlContent = generateVoucherEmailHtml(data);
     } else if (type === 'admin_notification') {
-      htmlContent = generateAdminNotificationHtml(data, logoUrl, subject);
+      htmlContent = generateAdminNotificationHtml(data, subject);
+    } else {
+      throw new Error(`Unknown email type: ${type}`);
     }
 
     const mailOptions = {
-      from: `"Złoty Żółwik" <${Deno.env.get("SMTP_USER")}>`,
+      from: `"Złoty Żółwik" <${smtpUser}>`,
       to: to,
       subject: subject,
+      replyTo: replyTo || (data.customerEmail && type === 'admin_notification' ? data.customerEmail : undefined),
       html: htmlContent,
       attachments: logoAttachment,
     };
@@ -125,7 +142,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function generateContactEmailHtml(data: any, logoUrl: string): string {
+function generateContactEmailHtml(data: any): string {
   const safeName = data.customerName || '';
   const safeSubject = data.contactSubject || '';
   const safeMessage = (data.contactMessage || '').replace(/\n/g, '<br>');
@@ -171,7 +188,7 @@ function generateContactEmailHtml(data: any, logoUrl: string): string {
   `;
 }
 
-function generateReservationEmailHtml(data: any, logoUrl: string): string {
+function generateReservationEmailHtml(data: any): string {
   return `
     <!DOCTYPE html>
     <html lang="pl">
@@ -185,7 +202,7 @@ function generateReservationEmailHtml(data: any, logoUrl: string): string {
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); padding: 30px 20px; text-align: center;">
-          <img src="${logoUrl}" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;">
+          <img src="cid:logo@zz" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;" onerror="this.style.display='none'">
           <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
             Złoty Żółwik
           </h1>
@@ -264,7 +281,7 @@ function generateReservationEmailHtml(data: any, logoUrl: string): string {
   `;
 }
 
-function generateVoucherEmailHtml(data: any, logoUrl: string): string {
+function generateVoucherEmailHtml(data: any): string {
   return `
     <!DOCTYPE html>
     <html lang="pl">
@@ -278,7 +295,7 @@ function generateVoucherEmailHtml(data: any, logoUrl: string): string {
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #f59e0b 0%, #f1c40f 50%, #fbbf24 100%); padding: 30px 20px; text-align: center;">
-          <img src="${logoUrl}" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;">
+          <img src="cid:logo@zz" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;" onerror="this.style.display='none'">
           <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
             🎁 Voucher Prezentowy
           </h1>
@@ -362,7 +379,7 @@ function generateVoucherEmailHtml(data: any, logoUrl: string): string {
   `;
 }
 
-function generateAdminNotificationHtml(data: any, logoUrl: string, subject: string): string {
+function generateAdminNotificationHtml(data: any, subject: string): string {
   // Escape HTML for safety
   const safeName = data.customerName || '';
   const safeEmail = data.customerEmail || '';
@@ -375,7 +392,7 @@ function generateAdminNotificationHtml(data: any, logoUrl: string, subject: stri
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 30px;">
-        <img src="cid:logo@zz" alt="Złoty Żółwik" style="max-width: 200px;">
+        <img src="cid:logo@zz" alt="Złoty Żółwik" style="max-width: 200px;" onerror="this.style.display='none'">
       </div>
       
       <h2 style="color: #D6B336; border-bottom: 2px solid #D6B336; padding-bottom: 10px;">
