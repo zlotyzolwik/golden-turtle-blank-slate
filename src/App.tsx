@@ -33,7 +33,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter basename={import.meta.env.MODE === 'production' ? '/zloty-zolwik' : '/'}>
+        <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
           <CookieBanner />
         <Routes>
             <Route path="/" element={<Index />} />
