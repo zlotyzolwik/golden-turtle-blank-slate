@@ -2,24 +2,23 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import Hero from "@/components/Hero";
-
 import TripGrid from "@/components/TripGrid";
 import Gallery from "@/components/Gallery";
 import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
-
 import { Trip } from "@/types/trips";
 import Brand from "@/components/Brand";
 import SEOHead from "@/components/SEOHead";
-
 const Index = () => {
-  const { user, signOut, isAdmin } = useAuth();
+  const {
+    user,
+    signOut,
+    isAdmin
+  } = useAuth();
   const navigate = useNavigate();
-
   const handleTripSelect = (trip: Trip) => {
     navigate(`/trip/${trip.id}`);
   };
-
   const homeStructuredData = {
     "@context": "https://schema.org",
     "@type": "TravelAgency",
@@ -33,23 +32,15 @@ const Index = () => {
       "addressCountry": "PL",
       "addressLocality": "Polska"
     },
-    "sameAs": [
-      "https://facebook.com/zloty-zolwik",
-      "https://instagram.com/zloty-zolwik"
-    ],
+    "sameAs": ["https://facebook.com/zloty-zolwik", "https://instagram.com/zloty-zolwik"],
     "offers": {
       "@type": "Offer",
       "category": "Wycieczki",
       "description": "Wycieczki po Polsce i Europie"
     }
   };
-
-  return (
-    <div className="min-h-screen">
-      <SEOHead
-        structuredData={homeStructuredData}
-        canonicalUrl="https://zloty-zolwik.pl"
-      />
+  return <div className="min-h-screen">
+      <SEOHead structuredData={homeStructuredData} canonicalUrl="https://zloty-zolwik.pl" />
       {/* Navigation */}
       <header>
         <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b" role="navigation" aria-label="Główna nawigacja">
@@ -58,22 +49,16 @@ const Index = () => {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" onClick={() => navigate('/')} aria-label="Przejdź do strony głównej">Strona główna</Button>
               <Button variant="ghost" onClick={() => navigate('/vouchers')} aria-label="Zobacz vouchery">Vouchery</Button>
-              {user ? (
-                <div className="flex items-center space-x-2">
-                  {isAdmin && (
-                    <Button variant="outline" onClick={() => navigate('/admin')} aria-label="Przejdź do panelu administracyjnego">
+              {user ? <div className="flex items-center space-x-2">
+                  {isAdmin && <Button variant="outline" onClick={() => navigate('/admin')} aria-label="Przejdź do panelu administracyjnego">
                       Panel Admin
-                    </Button>
-                  )}
+                    </Button>}
                   <Button variant="outline" onClick={() => signOut()} aria-label="Wyloguj się">
                     Wyloguj
                   </Button>
-                </div>
-              ) : (
-                <Button onClick={() => navigate('/auth')} aria-label="Zaloguj się">
+                </div> : <Button onClick={() => navigate('/auth')} aria-label="Zaloguj się">
                   Zaloguj się
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
         </nav>
@@ -112,13 +97,8 @@ const Index = () => {
               </p>
             </div>
             <div>
-              <h4 className="font-semibold mb-4">Szybkie linki</h4>
-              <ul className="space-y-2 text-sm opacity-80">
-                
-                <li><a href="#trips" className="hover:opacity-100">Oferta</a></li>
-                <li><a href="#contact" className="hover:opacity-100">Kontakt</a></li>
-                <li><Link to="/regulamin" className="hover:opacity-100">Regulamin</Link></li>
-              </ul>
+              
+              
             </div>
             <div>
               <h4 className="font-semibold mb-4">Kontakt</h4>
@@ -147,8 +127,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
