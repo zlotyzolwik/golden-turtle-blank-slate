@@ -21,8 +21,10 @@ export type Database = {
           id: string
           message: string
           name: string
+          phone: string | null
           replied_at: string | null
           status: string | null
+          subject: string | null
         }
         Insert: {
           created_at?: string
@@ -30,8 +32,10 @@ export type Database = {
           id?: string
           message: string
           name: string
+          phone?: string | null
           replied_at?: string | null
           status?: string | null
+          subject?: string | null
         }
         Update: {
           created_at?: string
@@ -39,8 +43,10 @@ export type Database = {
           id?: string
           message?: string
           name?: string
+          phone?: string | null
           replied_at?: string | null
           status?: string | null
+          subject?: string | null
         }
         Relationships: []
       }
@@ -403,6 +409,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_admin_profile: {
+        Args: { user_email: string; user_uuid: string }
+        Returns: undefined
+      }
       create_or_get_customer: {
         Args: { p_email: string; p_name: string; p_phone?: string }
         Returns: string
