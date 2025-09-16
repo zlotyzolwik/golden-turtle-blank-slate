@@ -213,8 +213,10 @@ serve(async (req) => {
         cancel_url: `${req.headers.get("origin")}/payment-cancel`,
         metadata: {
           type: 'trip_reservation',
-          reservationId: reservationId,
-          customerEmail: tripData.customerEmail
+          reservation_id: reservationId,
+          reservationId: reservationId, // Keep both for compatibility
+          customer_email: tripData.customerEmail,
+          customerEmail: tripData.customerEmail // Keep both for compatibility
         }
       });
 

@@ -243,31 +243,70 @@ async function handleVoucherPurchaseFromCheckout(session: Stripe.Checkout.Sessio
 }
 
 async function handleTripReservationFromCheckout(session: Stripe.Checkout.Session, metadata: any) {
-  const reservationId = metadata.reservation_id;
-  const userEmail = metadata.user_email;
+  const reservationId = metadata.reservationId || metadata.reservation_id;
+  const customerEmail = metadata.customerEmail || metadata.customer_email;
 
   console.log('Processing trip reservation after successful checkout:', {
     reservationId,
-    userEmail,
-    sessionId: session.id
+    customerEmail,
+    sessionId: session.id,
+    metadata
   });
 
-  // Update reservation status
-  const { data: reservation, error: reservationUpdateError } = await supabaseClient
-    .from('reservations')
-    .update({ 
-      payment_status: 'paid', 
-      status: 'confirmed',
-      stripe_payment_intent_id: typeof session.payment_intent === 'string' 
-        ? session.payment_intent 
-        : session.payment_intent?.id
-    })
-    .eq('id', reservationId)
-    .select('*, trips(*)')
-    .single();
+  // Try to find reservation by ID from metadata
+  let reservation = null;
+  let reservationUpdateError = null;
 
-  if (reservationUpdateError) {
+  if (reservationId) {
+    const { data, error } = await supabaseClient
+      .from('reservations')
+      .update({ 
+        payment_status: 'paid', 
+        status: 'confirmed',
+        stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+          ? session.payment_intent 
+          : session.payment_intent?.id || session.id
+      })
+      .eq('id', reservationId)
+      .select('*, trips(*)')
+      .single();
+    
+    reservation = data;
+    reservationUpdateError = error;
+  }
+
+  // Fallback: try to find reservation by matching payment
+  if (!reservation && session.id) {
+    console.log('Trying fallback: finding reservation by payment session ID');
+    const { data: payment } = await supabaseClient
+      .from('payments')
+      .select('reservation_id')
+      .eq('stripe_payment_intent_id', session.id)
+      .eq('type', 'trip_reservation')
+      .single();
+
+    if (payment?.reservation_id) {
+      const { data, error } = await supabaseClient
+        .from('reservations')
+        .update({ 
+          payment_status: 'paid', 
+          status: 'confirmed',
+          stripe_payment_intent_id: typeof session.payment_intent === 'string' 
+            ? session.payment_intent 
+            : session.payment_intent?.id || session.id
+        })
+        .eq('id', payment.reservation_id)
+        .select('*, trips(*)')
+        .single();
+      
+      reservation = data;
+      reservationUpdateError = error;
+    }
+  }
+
+  if (reservationUpdateError || !reservation) {
     console.error('Error updating reservation:', reservationUpdateError);
+    console.error('Reservation not found for session:', session.id);
     return;
   }
 

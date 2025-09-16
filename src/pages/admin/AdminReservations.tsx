@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AddReservationForm from "@/components/admin/AddReservationForm";
+import { PaymentRepairTool } from "@/components/admin/PaymentRepairTool";
 
 export default function AdminReservations() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -149,6 +150,8 @@ export default function AdminReservations() {
         <h2 className="text-2xl font-bold tracking-tight">Rezerwacje</h2>
         <p className="text-muted-foreground">Zarządzaj rezerwacjami klientów.</p>
       </div>
+
+      <PaymentRepairTool />
 
       <div className="flex items-center justify-between">
         <div className="relative flex-1 max-w-sm">
