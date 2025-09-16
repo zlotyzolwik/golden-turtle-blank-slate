@@ -21,7 +21,7 @@ serve(async (req) => {
 
   try {
     const body = await req.text();
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
 
     console.log(`Processing webhook event: ${event.type}`);
 
@@ -167,26 +167,19 @@ async function handleVoucherPurchaseSuccess(paymentIntent: Stripe.PaymentIntent,
 }
 
 async function handleCheckoutSessionSuccess(session: Stripe.Checkout.Session) {
-  const metadata = session.metadata;
+  const metadata = session.metadata || {} as any;
   const type = metadata?.type;
   
   console.log(`Checkout session completed for ${type}:`, session.id);
 
-  // Update payment status using session.payment_intent
-  const paymentIntentId = typeof session.payment_intent === 'string' 
-    ? session.payment_intent 
-    : session.payment_intent?.id;
+  // Update payment status using session.id because we stored session.id in payments.stripe_payment_intent_id
+  const { error: paymentUpdateError } = await supabaseClient
+    .from('payments')
+    .update({ status: 'succeeded' })
+    .eq('stripe_payment_intent_id', session.id);
 
-  if (paymentIntentId) {
-    const { error: paymentUpdateError } = await supabaseClient
-      .from('payments')
-      .update({ status: 'succeeded' })
-      .eq('stripe_payment_intent_id', paymentIntentId);
-
-    if (paymentUpdateError) {
-      console.error('Error updating payment status:', paymentUpdateError);
-      return;
-    }
+  if (paymentUpdateError) {
+    console.error('Error updating payment status:', paymentUpdateError);
   }
 
   if (type === 'voucher_purchase') {
@@ -197,57 +190,50 @@ async function handleCheckoutSessionSuccess(session: Stripe.Checkout.Session) {
 }
 
 async function handleVoucherPurchaseFromCheckout(session: Stripe.Checkout.Session, metadata: any) {
-  const voucherAmount = parseFloat(metadata.voucher_amount);
-  const senderName = metadata.sender_name;
-  const recipientName = metadata.recipient_name;
-  const recipientEmail = metadata.recipient_email;
-  const buyerEmail = metadata.buyer_email;
-  const message = metadata.message;
+  // Metadata may be camelCase (from create-payment) or snake_case. Support both.
+  const voucherCode = metadata?.voucherCode ?? metadata?.voucher_code ?? '';
+  const senderName = metadata?.senderName ?? metadata?.sender_name ?? '';
+  const recipientName = metadata?.recipientName ?? metadata?.recipient_name ?? '';
+  const recipientEmail = metadata?.recipientEmail ?? metadata?.recipient_email ?? '';
+  const buyerEmail = metadata?.buyerEmail ?? metadata?.buyer_email ?? '';
+  const message = metadata?.message ?? '';
 
-  console.log('Creating voucher after successful checkout:', {
-    amount: voucherAmount,
+  const amountCents = session.amount_total ?? (metadata?.amount ? parseInt(metadata.amount, 10) : undefined);
+  const amount = amountCents ? amountCents / 100 : 0;
+
+  console.log('Checkout completed - linking voucher and sending emails:', {
+    voucherCode,
     buyerEmail,
-    recipientEmail
+    recipientEmail,
+    sessionId: session.id,
+    amount
   });
 
-  // Create voucher
-  const { data: voucherData, error: voucherError } = await supabaseClient
-    .rpc('create_voucher_public', {
-      voucher_amount: voucherAmount,
-      sender_name: senderName,
-      recipient_name: recipientName,
-      recipient_email: recipientEmail,
-      voucher_message: message,
-      buyer_email: buyerEmail
-    });
-
-  if (voucherError) {
-    console.error('Error creating voucher:', voucherError);
-    return;
-  }
-
-  // Update payment record with voucher_id
-  const { data: voucher } = await supabaseClient
-    .from('vouchers')
-    .select('id')
-    .eq('code', voucherData[0].voucher_code)
-    .single();
-
-  if (voucher) {
-    const paymentIntentId = typeof session.payment_intent === 'string' 
-      ? session.payment_intent 
-      : session.payment_intent?.id;
-      
-    if (paymentIntentId) {
-      await supabaseClient
-        .from('payments')
-        .update({ voucher_id: voucher.id })
-        .eq('stripe_payment_intent_id', paymentIntentId);
+  // Try to find existing voucher created before checkout
+  let voucherId: string | null = null;
+  if (voucherCode) {
+    const { data: voucher, error: findErr } = await supabaseClient
+      .from('vouchers')
+      .select('id')
+      .eq('code', voucherCode)
+      .maybeSingle();
+    if (findErr) {
+      console.error('Error fetching voucher by code:', findErr);
     }
+    voucherId = voucher?.id ?? null;
   }
 
-  // Send voucher emails
-  await sendVoucherEmails(voucherData[0].voucher_code, voucherAmount, {
+  // Link payment -> voucher using the session.id we stored
+  const { error: linkError } = await supabaseClient
+    .from('payments')
+    .update({ status: 'succeeded', voucher_id: voucherId })
+    .eq('stripe_payment_intent_id', session.id);
+  if (linkError) {
+    console.error('Error linking payment to voucher:', linkError);
+  }
+
+  // Send emails
+  await sendVoucherEmails(voucherCode, amount, {
     senderName,
     recipientName,
     recipientEmail,
@@ -342,27 +328,32 @@ async function sendReservationEmails(reservation: any, paymentIntent: Stripe.Pay
         type: 'reservation',
         to: reservation.customer_email,
         subject: `Potwierdzenie płatności - ${reservation.trips.title}`,
-        customerName: reservation.customer_name,
-        tripTitle: reservation.trips.title,
-        destination: reservation.trips.destination,
-        totalPrice: reservation.total_price,
-        numberOfPeople: reservation.number_of_people,
-        paymentId: paymentIntent.id
+        data: {
+          customerName: reservation.customer_name,
+          customerEmail: reservation.customer_email,
+          tripTitle: reservation.trips.title,
+          totalPrice: reservation.total_price,
+          numberOfPeople: reservation.number_of_people,
+          currency: 'PLN',
+          notes: reservation.notes || undefined,
+        }
       }
     });
 
     // Email to admin
     await supabaseClient.functions.invoke('send-smtp-email', {
       body: {
-        type: 'admin_reservation_payment',
-        to: Deno.env.get('CONTACT_TO'),
+        type: 'admin_notification',
+        to: Deno.env.get('CONTACT_TO') || '',
         subject: `Nowa opłacona rezerwacja - ${reservation.trips.title}`,
-        customerName: reservation.customer_name,
-        customerEmail: reservation.customer_email,
-        tripTitle: reservation.trips.title,
-        totalPrice: reservation.total_price,
-        numberOfPeople: reservation.number_of_people,
-        paymentId: paymentIntent.id
+        data: {
+          customerName: reservation.customer_name,
+          customerEmail: reservation.customer_email,
+          tripTitle: reservation.trips.title,
+          totalPrice: reservation.total_price,
+          numberOfPeople: reservation.number_of_people,
+          paymentId: paymentIntent.id
+        }
       }
     });
 
@@ -378,14 +369,17 @@ async function sendVoucherEmails(voucherCode: string, amount: number, details: a
     if (details.buyerEmail) {
       await supabaseClient.functions.invoke('send-smtp-email', {
         body: {
-          type: 'voucher_buyer_confirmation',
+          type: 'voucher',
           to: details.buyerEmail,
           subject: 'Potwierdzenie zakupu vouchera',
-          buyerName: details.senderName,
-          voucherCode,
-          amount,
-          recipientName: details.recipientName,
-          recipientEmail: details.recipientEmail
+          data: {
+            recipientName: details.recipientName,
+            senderName: details.senderName,
+            voucherCode,
+            amount,
+            currency: 'PLN',
+            message: details.message
+          }
         }
       });
     }
@@ -397,11 +391,14 @@ async function sendVoucherEmails(voucherCode: string, amount: number, details: a
           type: 'voucher',
           to: details.recipientEmail,
           subject: `Voucher na wycieczkę - ${amount} PLN`,
-          recipientName: details.recipientName,
-          senderName: details.senderName,
-          voucherCode,
-          amount,
-          message: details.message
+          data: {
+            recipientName: details.recipientName,
+            senderName: details.senderName,
+            voucherCode,
+            amount,
+            currency: 'PLN',
+            message: details.message
+          }
         }
       });
     }
@@ -409,14 +406,16 @@ async function sendVoucherEmails(voucherCode: string, amount: number, details: a
     // Email to admin
     await supabaseClient.functions.invoke('send-smtp-email', {
       body: {
-        type: 'admin_voucher_sale',
-        to: Deno.env.get('CONTACT_TO'),
+        type: 'admin_notification',
+        to: Deno.env.get('CONTACT_TO') || '',
         subject: `Nowa sprzedaż vouchera - ${amount} PLN`,
-        voucherCode,
-        amount,
-        buyerEmail: details.buyerEmail,
-        recipientEmail: details.recipientEmail,
-        senderName: details.senderName
+        data: {
+          voucherCode,
+          amount,
+          buyerEmail: details.buyerEmail,
+          recipientEmail: details.recipientEmail,
+          senderName: details.senderName
+        }
       }
     });
 
