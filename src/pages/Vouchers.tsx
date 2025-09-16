@@ -23,7 +23,6 @@ const Vouchers = () => {
     amount: "",
     recipientEmail: "",
     recipientName: "",
-    senderName: "",
     buyerEmail: "",
     buyerName: "",
     buyerPhone: "",
@@ -51,11 +50,11 @@ const Vouchers = () => {
         currency: 'PLN',
         voucherData: {
           amount: amount * 100, // Convert to cents
-          senderName: formData.senderName,
+          senderName: formData.buyerName, // Buyer is the sender
           recipientName: formData.recipientName,
           recipientEmail: formData.recipientEmail,
           buyerEmail: formData.buyerEmail,
-          buyerName: formData.buyerName || formData.senderName,
+          buyerName: formData.buyerName,
           buyerPhone: formData.buyerPhone,
           message: formData.message
         }
@@ -139,34 +138,20 @@ const Vouchers = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="amount">Wartość (PLN) *</Label>
-                      <Input
-                        id="amount"
-                        name="amount"
-                        type="number"
-                        min="50"
-                        step="10"
-                        placeholder="500"
-                        value={formData.amount}
-                        onChange={handleInputChange}
-                        required
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="senderName">Imię nadawcy *</Label>
-                      <Input
-                        id="senderName"
-                        name="senderName"
-                        placeholder="Twoje imię"
-                        value={formData.senderName}
-                        onChange={handleInputChange}
-                        required
-                        className="mt-1"
-                      />
-                    </div>
+                  <div>
+                    <Label htmlFor="amount">Wartość (PLN) *</Label>
+                    <Input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      min="50"
+                      step="10"
+                      placeholder="500"
+                      value={formData.amount}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1"
+                    />
                   </div>
 
                   <div>
