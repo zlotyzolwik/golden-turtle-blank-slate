@@ -19,6 +19,14 @@ import { Link } from "react-router-dom";
 import { createReservationSecure, ReservationData } from "@/utils/reservationUtils";
 import { createStripePayment } from "@/utils/stripeUtils";
 
+const getPlacesText = (count: number) => {
+  if (count === 0) return "WYCIECZKA WYKUPIONA - BRAK MIEJSC";
+  if (count === 1) return "OSTATNIE 1 MIEJSCE";
+  if (count >= 2 && count <= 4) return `OSTATNIE ${count} MIEJSCA`;
+  if (count >= 5 && count <= 10) return `OSTATNIE ${count} MIEJSC`;
+  return `${count} miejsc`;
+};
+
 const TripDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -235,13 +243,16 @@ const TripDetails = () => {
                 <CardTitle className="flex justify-between items-center">
                   <span>Rezerwacja</span>
                   <Badge 
-                    variant={trip.available_spots <= 10 ? "destructive" : "secondary"}
-                    className={trip.available_spots <= 10 ? "bg-orange-500 text-white font-bold" : ""}
+                    variant={trip.available_spots === 0 || trip.available_spots <= 10 ? "destructive" : "secondary"}
+                    className={`${
+                      trip.available_spots === 0 
+                        ? "bg-red-600 text-white font-bold" 
+                        : trip.available_spots <= 10 
+                        ? "bg-orange-500 text-white font-bold" 
+                        : ""
+                    }`}
                   >
-                    {trip.available_spots <= 10 
-                      ? `OSTATNIE ${trip.available_spots} MIEJSC` 
-                      : `${trip.available_spots} miejsc`
-                    }
+                    {getPlacesText(trip.available_spots)}
                   </Badge>
                 </CardTitle>
               </CardHeader>

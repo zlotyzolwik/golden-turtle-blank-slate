@@ -6,6 +6,14 @@ import { Trip } from "@/types/trips";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 
+const getPlacesText = (count: number) => {
+  if (count === 0) return "WYCIECZKA WYKUPIONA - BRAK MIEJSC";
+  if (count === 1) return "OSTATNIE 1 MIEJSCE";
+  if (count >= 2 && count <= 4) return `OSTATNIE ${count} MIEJSCA`;
+  if (count >= 5 && count <= 10) return `OSTATNIE ${count} MIEJSC`;
+  return `${count} miejsc`;
+};
+
 interface TripCardProps {
   trip: Trip;
   onViewDetails: (trip: Trip) => void;
@@ -22,16 +30,16 @@ const TripCard = ({ trip, onViewDetails }: TripCardProps) => {
         />
         <div className="absolute top-4 right-4">
           <Badge 
-            variant={trip.available_spots <= 10 ? "destructive" : "secondary"} 
-            className={`${trip.available_spots <= 10 
-              ? "bg-orange-500 text-white font-bold animate-pulse" 
-              : "bg-background/90 text-foreground"
+            variant={trip.available_spots === 0 || trip.available_spots <= 10 ? "destructive" : "secondary"} 
+            className={`${
+              trip.available_spots === 0 
+                ? "bg-red-600 text-white font-bold" 
+                : trip.available_spots <= 10 
+                ? "bg-orange-500 text-white font-bold animate-pulse" 
+                : "bg-background/90 text-foreground"
             }`}
           >
-            {trip.available_spots <= 10 
-              ? `OSTATNIE ${trip.available_spots} MIEJSC` 
-              : `${trip.available_spots} miejsc`
-            }
+            {getPlacesText(trip.available_spots)}
           </Badge>
         </div>
       </div>
@@ -59,7 +67,16 @@ const TripCard = ({ trip, onViewDetails }: TripCardProps) => {
           </div>
           <div className="flex items-center">
             <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-            <span>{trip.available_spots} z {trip.total_spots} wolnych miejsc</span>
+            <span>
+              {trip.available_spots === 0 
+                ? "Brak wolnych miejsc"
+                : trip.available_spots === 1
+                ? "1 z " + trip.total_spots + " wolne miejsce"
+                : trip.available_spots >= 2 && trip.available_spots <= 4
+                ? trip.available_spots + " z " + trip.total_spots + " wolne miejsca"
+                : trip.available_spots + " z " + trip.total_spots + " wolnych miejsc"
+              }
+            </span>
           </div>
         </div>
       </CardContent>
