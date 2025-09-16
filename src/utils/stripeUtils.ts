@@ -2,7 +2,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { supabase } from '@/integrations/supabase/client';
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe('pk_test_51S4T9bK7ovBtjGHlxswARBSQoreksUsV8O5GDIZV44x4F4FD6T6Sm4DAVl6o9U6RxHc3FkFHt8KfKaoFSMGbiCgY00srACzwAa');
+const stripePromise = loadStripe('pk_live_51S4T9UKEStHG3hWsofzresGPKQZGUZBXZ9UavyGGiRUwCT2PDSkDQoP5eUZO2ZKz69ETGbcpRcX87w7vH8CZJq1H00HGyNGATy');
 
 export interface CreatePaymentParams {
   type: 'trip_reservation' | 'voucher_purchase';
