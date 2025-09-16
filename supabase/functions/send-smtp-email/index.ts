@@ -168,19 +168,19 @@ function generateContactEmailHtml(data: any, logoUrl: string): string {
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         
         <!-- Header -->
-        <div style="background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%); padding: 30px 20px; text-align: center;">
+        <div style="background: linear-gradient(135deg, #b7860b 0%, #daa520 50%, #f1c40f 100%); padding: 30px 20px; text-align: center;">
           <img src="${logoUrl}" alt="Złoty Żółwik" style="height: 60px; width: auto; margin-bottom: 15px;">
           <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
             Złoty Żółwik
           </h1>
-          <p style="color: #e0f2fe; margin: 5px 0 0; font-size: 16px;">Twoje przygody zaczynają się tutaj</p>
+          <p style="color: #fef9e7; margin: 5px 0 0; font-size: 16px;">Twoje przygody zaczynają się tutaj</p>
         </div>
 
         <!-- Main Content -->
         <div style="padding: 40px 30px;">
-          <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
-            <h2 style="color: #0c4a6e; margin: 0 0 10px; font-size: 24px;">Dziękujemy za wiadomość!</h2>
-            <p style="color: #075985; margin: 0; font-size: 16px;">
+          <div style="background-color: #fef9e7; border-left: 4px solid #f1c40f; padding: 20px; margin-bottom: 30px; border-radius: 0 8px 8px 0;">
+            <h2 style="color: #92400e; margin: 0 0 10px; font-size: 24px;">Dziękujemy za wiadomość!</h2>
+            <p style="color: #a16207; margin: 0; font-size: 16px;">
               Otrzymaliśmy Twoją wiadomość i odpowiemy tak szybko, jak to możliwe.
             </p>
           </div>
