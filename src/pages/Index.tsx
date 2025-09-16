@@ -7,7 +7,7 @@ import TripGrid from "@/components/TripGrid";
 import Gallery from "@/components/Gallery";
 import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
-import { MapSection } from "@/components/MapSection";
+
 import { Trip } from "@/types/trips";
 import Brand from "@/components/Brand";
 import SEOHead from "@/components/SEOHead";
@@ -95,7 +95,7 @@ const Index = () => {
           </div>
         </section>
 
-        <MapSection />
+        
         <Gallery />
         <FAQ />
         <ContactForm />
