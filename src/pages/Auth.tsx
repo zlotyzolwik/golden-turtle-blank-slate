@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [activeTab, setActiveTab] = useState("signin");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,14 +32,9 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl
-        }
       });
 
       if (error) {
@@ -57,9 +53,14 @@ const Auth = () => {
         }
       } else {
         toast({
-          title: "Sprawdź swoją skrzynkę e-mail",
-          description: "Wysłaliśmy link weryfikacyjny na Twój adres e-mail.",
+          title: "Zostałeś pomyślnie zarejestrowany!",
+          description: "Możesz teraz się zalogować używając swoich danych.",
         });
+        
+        // Clear form and switch to login tab
+        setEmail("");
+        setPassword("");
+        setActiveTab("signin");
       }
     } catch (error) {
       toast({
@@ -136,7 +137,7 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Logowanie</TabsTrigger>
               <TabsTrigger value="signup">Rejestracja</TabsTrigger>
