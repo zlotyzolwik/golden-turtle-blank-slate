@@ -237,7 +237,7 @@ const TripDetails = () => {
                 <CardTitle>Opis wycieczki</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed" itemProp="description">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line" itemProp="description">
                   {trip.detailed_description}
                 </p>
               </CardContent>
