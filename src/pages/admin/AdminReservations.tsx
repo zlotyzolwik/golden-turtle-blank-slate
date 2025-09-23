@@ -38,7 +38,6 @@ export default function AdminReservations() {
           table: 'reservations'
         },
         (payload) => {
-          console.log('Reservation updated in real-time:', payload);
           fetchReservations(); // Refresh the list
         }
       )

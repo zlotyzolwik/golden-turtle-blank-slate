@@ -95,7 +95,7 @@ export const useAuth = () => {
   const signOut = async () => {
     if (isSigningOut) return; // Prevent multiple calls
     
-    console.log('Starting signOut process, current session:', session?.access_token ? 'exists' : 'none');
+    
     setIsSigningOut(true);
     
     try {
@@ -115,8 +115,6 @@ export const useAuth = () => {
       
       // Clear localStorage as fallback
       localStorage.removeItem('sb-xgvvcovmjqcpfmghawdy-auth-token');
-      
-      console.log('SignOut completed successfully');
       
       toast({
         title: "Wylogowano pomyślnie",

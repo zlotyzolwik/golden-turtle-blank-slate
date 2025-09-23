@@ -22,8 +22,10 @@ import AdminReservations from "./pages/admin/AdminReservations";
 import AdminVouchers from "./pages/admin/AdminVouchers";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminReports from "./pages/admin/AdminReports";
+import MyReservations from "./pages/MyReservations";
 import { AdminLayout } from "./layouts/AdminLayout";
 import { CookieBanner } from "./components/CookieBanner";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +44,7 @@ const App = () => (
             <Route path="/vouchers" element={<Vouchers />} />
             <Route path="/regulamin" element={<Regulamin />} />
             <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
+            <Route path="/my-reservations" element={<ProtectedRoute><MyReservations /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
           
