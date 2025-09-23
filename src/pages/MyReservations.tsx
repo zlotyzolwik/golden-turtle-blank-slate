@@ -9,6 +9,8 @@ import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Calendar, MapPin, Users, ArrowLeft } from "lucide-react";
 import Brand from "@/components/Brand";
+import SEOHead from "@/components/SEOHead";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReservationWithTrip {
   id: string;
@@ -32,6 +34,7 @@ interface ReservationWithTrip {
 const MyReservations = () => {
   const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [reservations, setReservations] = useState<ReservationWithTrip[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +53,11 @@ const MyReservations = () => {
         setReservations(result.data as ReservationWithTrip[]);
       }
     } catch (error) {
-      console.error('Error fetching reservations:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się pobrać rezerwacji. Spróbuj ponownie.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -96,8 +103,27 @@ const MyReservations = () => {
     );
   }
 
+  const reservationsStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Moje Rezerwacje - Złoty Żółwik",
+    "description": "Zobacz wszystkie swoje rezerwacje wycieczek i śledź ich status",
+    "url": "https://zloty-zolwik.pl/my-reservations",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Złoty Żółwik",
+      "url": "https://zloty-zolwik.pl"
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <SEOHead 
+        title="Moje Rezerwacje - Złoty Żółwik"
+        description="Zobacz wszystkie swoje rezerwacje wycieczek i śledź ich status"
+        canonicalUrl="https://zloty-zolwik.pl/my-reservations"
+        structuredData={reservationsStructuredData}
+      />
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-background/95 backdrop-blur-sm z-50 border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
