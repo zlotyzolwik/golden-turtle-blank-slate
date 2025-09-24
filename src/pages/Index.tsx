@@ -108,7 +108,7 @@ const Index = () => {
             <div className="mx-0">
               <h4 className="font-semibold mb-4">Kontakt</h4>
               <ul className="space-y-2 text-sm opacity-80">
-                <li>517398308</li>
+                <li>514 176 996</li>
                 <li>kontakt@zloty-zolwik.pl</li>
               </ul>
             </div>
