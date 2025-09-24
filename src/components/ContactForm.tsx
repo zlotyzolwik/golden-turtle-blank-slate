@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
 const ContactForm = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -17,24 +16,23 @@ const ContactForm = () => {
     message: ""
   });
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       // Zapisanie wiadomości w bazie danych
-      const { error: dbError } = await supabase
-        .from('contact_messages')
-        .insert([{
-          name: formData.name,
-          email: formData.email,
-          message: formData.message,
-          phone: formData.phone || null,
-          subject: formData.subject
-        }]);
-
+      const {
+        error: dbError
+      } = await supabase.from('contact_messages').insert([{
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+        phone: formData.phone || null,
+        subject: formData.subject
+      }]);
       if (dbError) throw dbError;
 
       // Get technical information
@@ -42,7 +40,9 @@ const ContactForm = () => {
       const userAgent = navigator.userAgent;
 
       // Wysłanie emaila potwierdzającego do klienta
-      const { error: customerEmailError } = await supabase.functions.invoke('send-smtp-email', {
+      const {
+        error: customerEmailError
+      } = await supabase.functions.invoke('send-smtp-email', {
         body: {
           type: 'contact',
           to: formData.email,
@@ -58,7 +58,9 @@ const ContactForm = () => {
       });
 
       // Wysłanie powiadomienia do administratora
-      const { error: adminEmailError } = await supabase.functions.invoke('send-smtp-email', {
+      const {
+        error: adminEmailError
+      } = await supabase.functions.invoke('send-smtp-email', {
         body: {
           type: 'admin_notification',
           to: 'kontakt@zloty-zolwik.pl',
@@ -75,39 +77,42 @@ const ContactForm = () => {
           }
         }
       });
-
       if (customerEmailError || adminEmailError) {
-        console.error('Email errors:', { customerEmailError, adminEmailError });
+        console.error('Email errors:', {
+          customerEmailError,
+          adminEmailError
+        });
         // Nie przerywamy procesu jeśli emaile się nie wysłały
       }
-
       toast({
         title: "Wiadomość wysłana!",
-        description: "Dziękujemy za kontakt. Odpowiemy w ciągu 24 godzin.",
+        description: "Dziękujemy za kontakt. Odpowiemy w ciągu 24 godzin."
       });
-
-      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: ""
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: "Błąd",
         description: "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
   };
-
-  return (
-    <section className="py-20 bg-muted/50">
+  return <section className="py-20 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-6">Skontaktuj się z nami</h2>
@@ -125,59 +130,27 @@ const ContactForm = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Imię i nazwisko</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Adres e-mail</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Telefon (opcjonalnie)</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
+                  <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="subject">Temat</Label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Input id="subject" name="subject" value={formData.subject} onChange={handleChange} required />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Wiadomość</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    rows={5}
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                  />
+                  <Textarea id="message" name="message" rows={5} value={formData.message} onChange={handleChange} required />
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -206,8 +179,9 @@ const ContactForm = () => {
                   <Phone className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-2">Telefon</h3>
-                    <p className="text-muted-foreground">514176996</p>
-                    <p className="text-sm text-muted-foreground">Pn-Pt: 9:00-17:00</p>
+                    <p className="text-muted-foreground">517 398 308
+514 176 996</p>
+                    
                   </div>
                 </div>
               </CardContent>
@@ -216,8 +190,6 @@ const ContactForm = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default ContactForm;
