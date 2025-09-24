@@ -39,10 +39,6 @@ const MyReservations = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
     fetchReservations();
   }, [user, navigate]);
 

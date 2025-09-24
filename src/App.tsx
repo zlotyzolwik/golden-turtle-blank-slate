@@ -45,6 +45,7 @@ const App = () => (
             <Route path="/regulamin" element={<Regulamin />} />
             <Route path="/polityka-prywatnosci" element={<PolitykaPrywatnosci />} />
             <Route path="/my-reservations" element={<ProtectedRoute><MyReservations /></ProtectedRoute>} />
+            <Route path="/moje-rezerwacje" element={<ProtectedRoute><MyReservations /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
           

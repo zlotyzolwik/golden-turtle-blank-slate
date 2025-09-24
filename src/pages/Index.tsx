@@ -50,9 +50,11 @@ const Index = () => {
               <Button variant="ghost" onClick={() => navigate('/')} aria-label="Przejdź do strony głównej">Strona główna</Button>
               <Button variant="ghost" onClick={() => navigate('/vouchers')} aria-label="Zobacz vouchery">Vouchery</Button>
               {user ? <div className="flex items-center space-x-2">
-                  <Button variant="ghost" onClick={() => navigate('/my-reservations')} aria-label="Zobacz moje rezerwacje">
-                    Moje Rezerwacje
-                  </Button>
+                  <Link to="/my-reservations">
+                    <Button variant="ghost" aria-label="Zobacz moje rezerwacje">
+                      Moje Rezerwacje
+                    </Button>
+                  </Link>
                   {isAdmin && <Button variant="outline" onClick={() => navigate('/admin')} aria-label="Przejdź do panelu administracyjnego">
                       Panel Admin
                     </Button>}
