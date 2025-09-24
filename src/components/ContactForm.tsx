@@ -179,8 +179,7 @@ const ContactForm = () => {
                   <Phone className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-2">Telefon</h3>
-                    <p className="text-muted-foreground">517 398 308
-514 176 996</p>
+                    <p className="text-muted-foreground">517 398 308</p>
                     
                   </div>
                 </div>
