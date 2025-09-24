@@ -25,7 +25,7 @@ const Index = () => {
     "name": "Złoty Żółwik",
     "description": "Organizator wycieczek po Polsce i Europie od 2008 roku",
     "url": "https://zloty-zolwik.pl",
-    "telephone": "514176996",
+    "telephone": ["514176996", "517398308"],
     "email": "kontakt@zloty-zolwik.pl",
     "address": {
       "@type": "PostalAddress",
@@ -109,6 +109,7 @@ const Index = () => {
               <h4 className="font-semibold mb-4">Kontakt</h4>
               <ul className="space-y-2 text-sm opacity-80">
                 <li>514 176 996</li>
+                <li>517 398 308</li>
                 <li>kontakt@zloty-zolwik.pl</li>
               </ul>
             </div>

@@ -472,6 +472,13 @@ const TripDetails = () => {
                   </div>
                 </div>
                 <div className="flex items-center">
+                  <Phone className="h-5 w-5 mr-3 text-primary" />
+                  <div>
+                    <p className="font-medium">517398308</p>
+                    <p className="text-sm text-muted-foreground">Pn-Pt: 9:00-17:00</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
                   <Mail className="h-5 w-5 mr-3 text-primary" />
                   <div>
                     <p className="font-medium">kontakt@zloty-zolwik.pl</p>
