@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, HashRouter } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import TripDetails from "./pages/TripDetails";
 import Vouchers from "./pages/Vouchers";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -40,6 +41,7 @@ const App = () => (
         <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/trip/:id" element={<TripDetails />} />
             <Route path="/vouchers" element={<Vouchers />} />
             <Route path="/regulamin" element={<Regulamin />} />
