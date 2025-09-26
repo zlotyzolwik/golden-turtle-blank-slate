@@ -31,6 +31,12 @@ const tripFormSchema = z.object({
 
 type TripFormData = z.infer<typeof tripFormSchema>;
 
+interface GalleryItem {
+  url: string;
+  isExisting: boolean;
+  file?: File;
+}
+
 interface AdminTripFormProps {
   trip?: Trip;
   onSuccess?: () => void;
@@ -39,8 +45,9 @@ interface AdminTripFormProps {
 export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
   const [featuredImage, setFeaturedImage] = useState<File | null>(null);
   const [featuredImagePreview, setFeaturedImagePreview] = useState<string>(trip?.featured_image || "");
-  const [galleryImages, setGalleryImages] = useState<File[]>([]);
-  const [galleryPreviews, setGalleryPreviews] = useState<string[]>(trip?.gallery_images || []);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(
+    (trip?.gallery_images || []).map(url => ({ url, isExisting: true }))
+  );
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -80,18 +87,22 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
 
   const handleGalleryImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setGalleryImages(prev => [...prev, ...files]);
     
     files.forEach(file => {
       const reader = new FileReader();
-      reader.onload = () => setGalleryPreviews(prev => [...prev, reader.result as string]);
+      reader.onload = () => {
+        setGalleryItems(prev => [...prev, {
+          url: reader.result as string,
+          isExisting: false,
+          file
+        }]);
+      };
       reader.readAsDataURL(file);
     });
   };
 
   const removeGalleryImage = (index: number) => {
-    setGalleryImages(prev => prev.filter((_, i) => i !== index));
-    setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+    setGalleryItems(prev => prev.filter((_, i) => i !== index));
   };
 
   const uploadImage = async (file: File, folder: string): Promise<string> => {
@@ -130,11 +141,17 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
       }
 
       // Upload gallery images if any new ones selected
-      if (galleryImages.length > 0) {
+      const newGalleryFiles = galleryItems.filter(item => !item.isExisting && item.file).map(item => item.file!);
+      if (newGalleryFiles.length > 0) {
         const newGalleryUrls = await Promise.all(
-          galleryImages.map(file => uploadImage(file, 'trips/gallery'))
+          newGalleryFiles.map(file => uploadImage(file, 'trips/gallery'))
         );
-        galleryImageUrls = [...galleryImageUrls, ...newGalleryUrls];
+        // Combine existing URLs with new ones
+        const existingUrls = galleryItems.filter(item => item.isExisting).map(item => item.url);
+        galleryImageUrls = [...existingUrls, ...newGalleryUrls];
+      } else {
+        // No new images, just keep existing ones
+        galleryImageUrls = galleryItems.filter(item => item.isExisting).map(item => item.url);
       }
 
       const tripData = {
@@ -383,12 +400,12 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
               multiple
               onChange={handleGalleryImagesChange}
             />
-            {galleryPreviews.length > 0 && (
+            {galleryItems.length > 0 && (
               <div className="mt-2 grid grid-cols-4 gap-2">
-                {galleryPreviews.map((preview, index) => (
+                {galleryItems.map((item, index) => (
                   <div key={index} className="relative">
                     <img
-                      src={preview}
+                      src={item.url}
                       alt={`Gallery ${index + 1}`}
                       className="w-24 h-24 object-cover rounded-md"
                     />
