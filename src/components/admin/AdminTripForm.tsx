@@ -401,13 +401,13 @@ export default function AdminTripForm({ trip, onSuccess }: AdminTripFormProps) {
               onChange={handleGalleryImagesChange}
             />
             {galleryItems.length > 0 && (
-              <div className="mt-2 grid grid-cols-4 gap-2">
+              <div className="mt-2 grid grid-cols-4 gap-2 justify-items-start">
                 {galleryItems.map((item, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative w-24 h-24">
                     <img
                       src={item.url}
                       alt={`Gallery ${index + 1}`}
-                      className="w-24 h-24 object-cover rounded-md"
+                      className="w-full h-full object-cover rounded-md"
                     />
                     <Button
                       type="button"
