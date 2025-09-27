@@ -96,7 +96,18 @@ const Index = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4">Złoty Żółwik</h3>
+              <div className="flex items-center space-x-2 mb-4">
+                <img 
+                  src="/lovable-uploads/a27c4817-15d6-48be-941e-7b8c03441f76.png" 
+                  alt="Złoty Żółwik logo" 
+                  width="32"
+                  height="32"
+                  className="h-8 w-8 object-contain block shrink-0"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <h3 className="text-xl font-bold">Złoty Żółwik</h3>
+              </div>
               <p className="text-sm opacity-80">
                 Organizujemy niezapomniane wycieczki po najpiękniejszych zakątkach świata od 2008 roku.
               </p>
