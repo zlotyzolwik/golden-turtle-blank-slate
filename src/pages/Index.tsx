@@ -99,18 +99,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Gallery Section */}
-        <section className="py-20 bg-background" aria-labelledby="gallery-heading">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 id="gallery-heading" className="text-4xl font-bold mb-4">Galeria zdjęć</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Zobacz, jak wyglądają nasze wycieczki i przekonaj się, że warto z nami podróżować
-              </p>
-            </div>
-            <Gallery />
-          </div>
-        </section>
+        <Gallery />
         <FAQ />
         <ContactForm />
       </main>
