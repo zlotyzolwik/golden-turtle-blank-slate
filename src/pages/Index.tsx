@@ -9,6 +9,7 @@ import ContactForm from "@/components/ContactForm";
 import { Trip } from "@/types/trips";
 import Brand from "@/components/Brand";
 import SEOHead from "@/components/SEOHead";
+import DestinationsMap from "@/components/DestinationsMap";
 const Index = () => {
   const {
     user,
@@ -85,8 +86,31 @@ const Index = () => {
           </div>
         </section>
 
-        
-        <Gallery />
+        {/* Destinations Section */}
+        <section className="py-20 bg-muted/30" aria-labelledby="destinations-heading">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 id="destinations-heading" className="text-4xl font-bold mb-4">Nasze destynacje</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Odkryj miejsca, które odwiedzamy podczas naszych wycieczek. Każdy punkt na mapie to niezapomniana przygoda
+              </p>
+            </div>
+            <DestinationsMap onDestinationSelect={handleTripSelect} />
+          </div>
+        </section>
+
+        {/* Gallery Section */}
+        <section className="py-20 bg-background" aria-labelledby="gallery-heading">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <h2 id="gallery-heading" className="text-4xl font-bold mb-4">Galeria zdjęć</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Zobacz, jak wyglądają nasze wycieczki i przekonaj się, że warto z nami podróżować
+              </p>
+            </div>
+            <Gallery />
+          </div>
+        </section>
         <FAQ />
         <ContactForm />
       </main>
