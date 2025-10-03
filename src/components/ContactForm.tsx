@@ -112,10 +112,10 @@ const ContactForm = () => {
       [e.target.name]: e.target.value
     }));
   };
-  return <section className="py-20 bg-muted/50">
+  return <section id="contact-section" aria-labelledby="contact-heading" className="py-20 bg-muted/50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-6">Skontaktuj się z nami</h2>
+          <h2 id="contact-heading" className="text-4xl font-bold mb-6">Skontaktuj się z nami</h2>
           <p className="text-xl text-muted-foreground">
             Masz pytania? Chętnie na nie odpowiemy!
           </p>
