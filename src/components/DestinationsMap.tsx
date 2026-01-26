@@ -64,7 +64,7 @@ const DestinationsMap = ({ onDestinationSelect }: DestinationsMapProps) => {
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyChmqyXmSyRWcrS01NkeinvXld1vS7Uzzk&libraries=places`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyA095vYT5-WuSJT8u8M1SydzttPXnDXYI0&libraries=places`;
     script.async = true;
     script.defer = true;
     script.onload = initializeMap;

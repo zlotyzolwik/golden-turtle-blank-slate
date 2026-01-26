@@ -468,9 +468,25 @@ export type Database = {
           voucher_code: string
         }[]
       }
-      create_voucher_public: {
-        Args:
-          | {
+      create_voucher_public:
+        | {
+            Args: {
+              expires_at?: string
+              recipient_email?: string
+              recipient_name?: string
+              sender_name?: string
+              voucher_amount: number
+              voucher_currency?: string
+              voucher_message?: string
+            }
+            Returns: {
+              message: string
+              success: boolean
+              voucher_code: string
+            }[]
+          }
+        | {
+            Args: {
               buyer_email?: string
               expires_at?: string
               recipient_email?: string
@@ -480,25 +496,13 @@ export type Database = {
               voucher_currency?: string
               voucher_message?: string
             }
-          | {
-              expires_at?: string
-              recipient_email?: string
-              recipient_name?: string
-              sender_name?: string
-              voucher_amount: number
-              voucher_currency?: string
-              voucher_message?: string
-            }
-        Returns: {
-          message: string
-          success: boolean
-          voucher_code: string
-        }[]
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+            Returns: {
+              message: string
+              success: boolean
+              voucher_code: string
+            }[]
+          }
+      is_admin: { Args: never; Returns: boolean }
       restore_trip_spots: {
         Args: { p_spots_to_restore: number; p_trip_id: string }
         Returns: undefined
