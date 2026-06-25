@@ -7,7 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-const ContactForm = () => {
+
+interface ContactFormProps {
+  hideHeader?: boolean;
+  embedded?: boolean;
+}
+
+const ContactForm = ({ hideHeader = false, embedded = false }: ContactFormProps) => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -112,14 +118,16 @@ const ContactForm = () => {
       [e.target.name]: e.target.value
     }));
   };
-  return <section id="contact-section" aria-labelledby="contact-heading" className="py-20 bg-muted/50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 id="contact-heading" className="text-4xl font-bold mb-6">Skontaktuj się z nami</h2>
-          <p className="text-xl text-muted-foreground">
-            Masz pytania? Chętnie na nie odpowiemy!
-          </p>
-        </div>
+  const content = (
+    <>
+        {!hideHeader && (
+          <div className="text-center mb-16">
+            <h2 id="contact-heading" className="text-4xl font-bold mb-6">Skontaktuj się z nami</h2>
+            <p className="text-xl text-muted-foreground">
+              Masz pytania? Chętnie na nie odpowiemy!
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
           <Card>
@@ -179,7 +187,7 @@ const ContactForm = () => {
                   <Phone className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold mb-2">Telefon</h3>
-                    <p className="text-muted-foreground">517 398 308</p>
+                    <p className="text-muted-foreground">514 176 996</p>
                     
                   </div>
                 </div>
@@ -188,7 +196,17 @@ const ContactForm = () => {
 
           </div>
         </div>
-      </div>
-    </section>;
+    </>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <section id="contact-section" aria-labelledby="contact-heading" className="py-20 bg-muted/50">
+      <div className="container mx-auto px-4">{content}</div>
+    </section>
+  );
 };
 export default ContactForm;

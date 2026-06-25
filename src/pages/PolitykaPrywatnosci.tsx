@@ -117,13 +117,13 @@ const PolitykaPrywatnosci = () => {
                 ze swoich praw, skontaktuj się z nami:
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <Link to="/#contact">
+                <Link to="/" state={{ scrollTo: "contact-section" }}>
                   <Button variant="outline" className="border-accent hover:bg-accent/10">
                     Formularz kontaktowy
                   </Button>
                 </Link>
-                <Button variant="ghost" className="text-accent hover:text-accent/80">
-                  rodo@zlotyzolwik.pl
+                <Button variant="ghost" className="text-accent hover:text-accent/80" asChild>
+                  <a href="mailto:kontakt@zloty-zolwik.pl">kontakt@zloty-zolwik.pl</a>
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-4">
