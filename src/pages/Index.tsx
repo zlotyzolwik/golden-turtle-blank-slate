@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Hero from "@/components/Hero";
 import FAQ from "@/components/FAQ";
 import SEOHead from "@/components/SEOHead";
+import IntroOverlay from "@/components/animations/IntroOverlay";
 import PublicNav from "@/components/layout/PublicNav";
 import PublicFooter from "@/components/layout/PublicFooter";
 import TailoredTripsSection from "@/components/landing/TailoredTripsSection";
@@ -45,7 +46,7 @@ const Index = () => {
       addressCountry: "PL",
       addressLocality: "Polska",
     },
-    sameAs: ["https://facebook.com/zloty-zolwik", "https://instagram.com/zloty-zolwik"],
+    sameAs: ["https://facebook.com/zlotyzolwikpl", "https://instagram.com/zloty-zolwik"],
     offers: {
       "@type": "Offer",
       category: "Organizacja wyjazdów",
@@ -63,6 +64,7 @@ const Index = () => {
         canonicalUrl="https://zloty-zolwik.pl"
       />
 
+      <IntroOverlay />
       <PublicNav />
 
       <main role="main">

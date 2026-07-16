@@ -46,8 +46,18 @@ const PublicFooter = () => {
             </div>
           </div>
         </div>
-        <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center text-sm opacity-80">
-          <p>&copy; {new Date().getFullYear()} Złoty Żółwik. Wszystkie prawa zastrzeżone.</p>
+        <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center space-y-4">
+          <a
+            href="https://facebook.com/zlotyzolwikpl"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-base md:text-lg font-semibold opacity-90 hover:opacity-100"
+          >
+            Odwiedź nas na Facebook
+          </a>
+          <p className="text-sm opacity-80">
+            &copy; {new Date().getFullYear()} Złoty Żółwik. Wszystkie prawa zastrzeżone.
+          </p>
         </div>
       </div>
     </footer>
