@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Brand from "@/components/Brand";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,52 +21,93 @@ const Auth = () => {
   const [signUpError, setSignUpError] = useState("");
   const [forgotPasswordError, setForgotPasswordError] = useState("");
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [signUpConfirmationSent, setSignUpConfirmationSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already authenticated
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const searchParams = new URLSearchParams(window.location.search);
+    const fromEmailLink =
+      hashParams.get("type") === "signup" ||
+      searchParams.get("type") === "signup" ||
+      Boolean(hashParams.get("access_token")) ||
+      Boolean(searchParams.get("code"));
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session && fromEmailLink) {
+        toast({
+          title: "E-mail potwierdzony",
+          description: "Konto zostało aktywowane. Możesz korzystać z serwisu.",
+        });
         navigate("/");
       }
-    };
-    checkUser();
-  }, [navigate]);
+    });
+
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session && !fromEmailLink) {
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate, toast]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignUpError("");
+    setSignUpConfirmationSent(false);
     setSignUpLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth`
-        }
+          emailRedirectTo: `${window.location.origin}/auth`,
+        },
       });
 
       if (error) {
-        if (error.message.includes("already registered")) {
+        const message = error.message.toLowerCase();
+        if (message.includes("already registered") || message.includes("already been registered")) {
           setSignUpError("Konto z tym adresem e-mail już istnieje. Przejdź do logowania.");
+        } else if (message.includes("rate limit") || message.includes("email rate")) {
+          setSignUpError("Limit wysyłki e-maili wyczerpany. Spróbuj ponownie za około godzinę.");
         } else {
           setSignUpError(error.message);
         }
-      } else {
-        toast({
-          title: "Zostałeś pomyślnie zarejestrowany!",
-          description: "Możesz teraz się zalogować używając swoich danych.",
-        });
-        
-        // Clear form and switch to login tab
-        setEmail("");
-        setPassword("");
-        setActiveTab("signin");
+        return;
       }
-    } catch (error) {
+
+      // Supabase may return a user with empty identities when the email is already taken
+      const identities = data.user?.identities ?? [];
+      if (data.user && identities.length === 0) {
+        setSignUpError("Konto z tym adresem e-mail już istnieje. Przejdź do logowania lub odzyskaj hasło.");
+        return;
+      }
+
+      setPassword("");
+
+      if (!data.session) {
+        // Confirm email is enabled — account is pending until link is clicked
+        setSignUpConfirmationSent(true);
+        toast({
+          title: "Potwierdź adres e-mail",
+          description: "Wysłaliśmy link aktywacyjny. Po kliknięciu możesz się zalogować.",
+        });
+        return;
+      }
+
+      // Confirm email disabled — user is signed in immediately
+      toast({
+        title: "Konto utworzone",
+        description: "Zostałeś zalogowany.",
+      });
+      navigate("/");
+    } catch {
       setSignUpError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
     } finally {
       setSignUpLoading(false);
@@ -85,31 +126,41 @@ const Auth = () => {
       });
 
       if (error) {
-        if (error.message.includes("Invalid login credentials")) {
-          setSignInError("Użytkownik o podanych danych nie jest zarejestrowany. Sprawdź dane lub przejdź do rejestracji.");
+        const message = error.message.toLowerCase();
+        if (message.includes("email not confirmed")) {
+          setSignInError(
+            "Adres e-mail nie został potwierdzony. Sprawdź skrzynkę i kliknij link aktywacyjny."
+          );
+        } else if (message.includes("invalid login credentials")) {
+          setSignInError(
+            "Nieprawidłowy e-mail lub hasło. Sprawdź dane albo przejdź do rejestracji."
+          );
         } else {
           setSignInError(error.message);
         }
-      } else {
-        toast({
-          title: "Pomyślnie zalogowano",
-          description: "Witamy z powrotem!",
-        });
-        
-        // Check if user is admin and redirect accordingly
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', (await supabase.auth.getSession()).data.session?.user.id)
-          .single();
-          
-        if (profile?.role === 'admin') {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        return;
       }
-    } catch (error) {
+
+      toast({
+        title: "Pomyślnie zalogowano",
+        description: "Witamy z powrotem!",
+      });
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", session?.user.id ?? "")
+        .single();
+
+      if (profile?.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch {
       setSignInError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
     } finally {
       setSignInLoading(false);
@@ -228,6 +279,15 @@ const Auth = () => {
                     <AlertDescription>{signUpError}</AlertDescription>
                   </Alert>
                 )}
+
+                {signUpConfirmationSent && (
+                  <Alert>
+                    <AlertDescription>
+                      Na adres <strong>{email}</strong> wysłaliśmy link aktywacyjny.
+                      Potwierdź e-mail, a potem zaloguj się. Sprawdź też folder spam.
+                    </AlertDescription>
+                  </Alert>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Adres e-mail</Label>
@@ -236,8 +296,12 @@ const Auth = () => {
                     type="email"
                     placeholder="twoj@email.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setSignUpConfirmationSent(false);
+                    }}
                     required
+                    disabled={signUpConfirmationSent}
                   />
                 </div>
                 <div className="space-y-2">
@@ -250,14 +314,19 @@ const Auth = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
+                    disabled={signUpConfirmationSent}
                   />
                 </div>
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={signUpLoading}
+                  disabled={signUpLoading || signUpConfirmationSent}
                 >
-                  {signUpLoading ? "Rejestrowanie..." : "Utwórz konto"}
+                  {signUpLoading
+                    ? "Rejestrowanie..."
+                    : signUpConfirmationSent
+                      ? "Link wysłany"
+                      : "Utwórz konto"}
                 </Button>
                 
                 <div className="text-center text-sm">
