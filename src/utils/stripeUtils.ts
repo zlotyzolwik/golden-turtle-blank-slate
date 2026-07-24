@@ -1,8 +1,15 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { supabase } from '@/integrations/supabase/client';
 
-// Initialize Stripe with your publishable key
-const stripePromise = loadStripe('pk_live_51S4T9UKEStHG3hWsofzresGPKQZGUZBXZ9UavyGGiRUwCT2PDSkDQoP5eUZO2ZKz69ETGbcpRcX87w7vH8CZJq1H00HGyNGATy');
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+if (!stripePublishableKey) {
+  throw new Error(
+    "Missing VITE_STRIPE_PUBLISHABLE_KEY. Copy .env.example to .env and fill in values."
+  );
+}
+
+const stripePromise = loadStripe(stripePublishableKey);
 
 export interface CreatePaymentParams {
   type: 'trip_reservation' | 'voucher_purchase';
