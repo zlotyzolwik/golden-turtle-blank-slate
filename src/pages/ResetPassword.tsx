@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [readyToReset, setReadyToReset] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -17,15 +19,63 @@ const ResetPassword = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is authenticated (they should be after clicking reset link)
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // If no session, redirect to auth page
-        navigate("/auth");
-      }
+    let cancelled = false;
+    let settled = false;
+
+    const markReady = () => {
+      if (cancelled || settled) return;
+      settled = true;
+      setReadyToReset(true);
+      setCheckingSession(false);
     };
-    checkSession();
+
+    const redirectToAuth = () => {
+      if (cancelled || settled) return;
+      settled = true;
+      setCheckingSession(false);
+      navigate("/auth", { replace: true });
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        markReady();
+        return;
+      }
+
+      if (
+        (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") &&
+        session
+      ) {
+        // Recovery links establish a session; allow reset form once session exists.
+        markReady();
+      }
+    });
+
+    // Fallback: session may already be present after detectSessionInUrl
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        markReady();
+      }
+    });
+
+    // Give Supabase time to parse hash/query tokens before sending user away
+    const timeoutId = window.setTimeout(() => {
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          markReady();
+        } else {
+          redirectToAuth();
+        }
+      });
+    }, 2500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -47,7 +97,7 @@ const ResetPassword = () => {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       });
 
       if (error) {
@@ -57,14 +107,29 @@ const ResetPassword = () => {
           title: "Hasło zostało zmienione",
           description: "Możesz teraz korzystać z nowego hasła.",
         });
-        navigate("/");
+        navigate("/auth", { replace: true });
       }
-    } catch (error) {
+    } catch {
       setError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center space-y-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Weryfikacja linku resetującego…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!readyToReset) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -82,7 +147,7 @@ const ResetPassword = () => {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Nowe hasło</Label>
               <Input
@@ -95,7 +160,7 @@ const ResetPassword = () => {
                 minLength={6}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Potwierdź nowe hasło</Label>
               <Input
@@ -108,12 +173,8 @@ const ResetPassword = () => {
                 minLength={6}
               />
             </div>
-            
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={loading}
-            >
+
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Zmienianie hasła..." : "Zmień hasło"}
             </Button>
           </form>
