@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
+function getAuthParamsFromUrl() {
+  const search = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+
+  return {
+    code: search.get("code") ?? hash.get("code"),
+    accessToken: hash.get("access_token") ?? search.get("access_token"),
+    refreshToken: hash.get("refresh_token") ?? search.get("refresh_token"),
+    type: hash.get("type") ?? search.get("type"),
+    error:
+      search.get("error_description") ??
+      search.get("error") ??
+      hash.get("error_description") ??
+      hash.get("error"),
+  };
+}
+
+function clearAuthParamsFromUrl() {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  window.history.replaceState(null, "", url.pathname);
+}
+
 const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [readyToReset, setReadyToReset] = useState(false);
+  const [linkError, setLinkError] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,13 +52,15 @@ const ResetPassword = () => {
       settled = true;
       setReadyToReset(true);
       setCheckingSession(false);
+      clearAuthParamsFromUrl();
     };
 
-    const redirectToAuth = () => {
+    const fail = (message: string) => {
       if (cancelled || settled) return;
       settled = true;
+      setLinkError(message);
       setCheckingSession(false);
-      navigate("/auth", { replace: true });
+      setReadyToReset(false);
     };
 
     const {
@@ -48,35 +75,92 @@ const ResetPassword = () => {
         (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") &&
         session
       ) {
-        // Recovery links establish a session; allow reset form once session exists.
         markReady();
       }
     });
 
-    // Fallback: session may already be present after detectSessionInUrl
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        markReady();
-      }
-    });
+    const establishSession = async () => {
+      const params = getAuthParamsFromUrl();
 
-    // Give Supabase time to parse hash/query tokens before sending user away
-    const timeoutId = window.setTimeout(() => {
-      void supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
+      if (params.error) {
+        fail(
+          decodeURIComponent(params.error.replace(/\+/g, " ")) ||
+            "Link resetujący jest nieprawidłowy lub wygasł."
+        );
+        return;
+      }
+
+      // detectSessionInUrl may already have finished
+      const { data: { session: existing } } = await supabase.auth.getSession();
+      if (cancelled || settled) return;
+      if (existing) {
+        markReady();
+        return;
+      }
+
+      // PKCE leftover: exchange one-time code
+      if (params.code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(params.code);
+        if (cancelled || settled) return;
+
+        if (!exchangeError) {
           markReady();
-        } else {
-          redirectToAuth();
+          return;
         }
-      });
-    }, 2500);
+
+        const { data: { session: afterExchange } } = await supabase.auth.getSession();
+        if (cancelled || settled) return;
+        if (afterExchange) {
+          markReady();
+          return;
+        }
+
+        fail(
+          "Nie udało się zweryfikować linku. Otwórz go w tej samej przeglądarce, w której prosiłeś o reset, albo wyślij nowy link."
+        );
+        return;
+      }
+
+      // Implicit: tokens in hash (works across browsers / email apps)
+      if (params.accessToken && params.refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: params.accessToken,
+          refresh_token: params.refreshToken,
+        });
+        if (cancelled || settled) return;
+
+        if (!sessionError) {
+          markReady();
+          return;
+        }
+
+        fail("Nie udało się otworzyć sesji resetu. Wyślij nowy link resetujący.");
+        return;
+      }
+
+      // Client may still be parsing the URL
+      await new Promise((r) => window.setTimeout(r, 2000));
+      if (cancelled || settled) return;
+
+      const { data: { session: delayedSession } } = await supabase.auth.getSession();
+      if (cancelled || settled) return;
+
+      if (delayedSession) {
+        markReady();
+      } else {
+        fail(
+          "Link resetujący jest nieprawidłowy, wygasł lub został już użyty. Poproś o nowy link na stronie logowania."
+        );
+      }
+    };
+
+    void establishSession();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,17 +180,18 @@ const ResetPassword = () => {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
+      const { error: updateError } = await supabase.auth.updateUser({
+        password,
       });
 
-      if (error) {
-        setError("Błąd podczas zmiany hasła: " + error.message);
+      if (updateError) {
+        setError("Błąd podczas zmiany hasła: " + updateError.message);
       } else {
         toast({
           title: "Hasło zostało zmienione",
-          description: "Możesz teraz korzystać z nowego hasła.",
+          description: "Możesz teraz zalogować się nowym hasłem.",
         });
+        await supabase.auth.signOut();
         navigate("/auth", { replace: true });
       }
     } catch {
@@ -127,6 +212,27 @@ const ResetPassword = () => {
     );
   }
 
+  if (linkError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Link nie działa</CardTitle>
+            <CardDescription>Nie udało się przejść do zmiany hasła</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert variant="destructive">
+              <AlertDescription>{linkError}</AlertDescription>
+            </Alert>
+            <Button asChild className="w-full">
+              <Link to="/auth">Wróć do logowania</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!readyToReset) {
     return null;
   }
@@ -136,9 +242,7 @@ const ResetPassword = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Resetuj hasło</CardTitle>
-          <CardDescription>
-            Wprowadź nowe hasło dla swojego konta
-          </CardDescription>
+          <CardDescription>Wprowadź nowe hasło dla swojego konta</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleResetPassword} className="space-y-4">
@@ -158,6 +262,7 @@ const ResetPassword = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                autoComplete="new-password"
               />
             </div>
 
@@ -171,6 +276,7 @@ const ResetPassword = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
+                autoComplete="new-password"
               />
             </div>
 

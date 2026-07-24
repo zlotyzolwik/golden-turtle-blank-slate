@@ -138,8 +138,9 @@ const Auth = () => {
         setResetEmailSent(true);
         toast({
           title: "Link resetujący został wysłany",
-          description: "Sprawdź swoją skrzynkę e-mail.",
+          description: "Sprawdź skrzynkę e-mail i otwórz link (najlepiej w tej samej przeglądarce).",
         });
+
       }
     } catch (error) {
       setForgotPasswordError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie.");

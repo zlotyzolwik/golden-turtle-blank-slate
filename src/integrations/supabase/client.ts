@@ -20,6 +20,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    flowType: "pkce",
+    // Implicit fits this client-only SPA: recovery links work without a
+    // same-browser PKCE code verifier (email apps / other devices).
+    flowType: "implicit",
   }
 });
+
